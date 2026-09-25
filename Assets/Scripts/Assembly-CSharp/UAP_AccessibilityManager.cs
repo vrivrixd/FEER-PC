@@ -1,4 +1,4 @@
-﻿//#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+//#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 //#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
 
 #define IOS_USENATIVESWIPES
@@ -339,11 +339,80 @@ public class UAP_AccessibilityManager : MonoBehaviour
 
 	//////////////////////////////////////////////////////////////////////////
 
+	// FEER: na versao do jogo o Start e vazio; o plugin e iniciado por StartPlugin() (FeerSceneManager.InitAllData)
 	void Start()
 	{
+	}
+
+	static bool m_PluginStarted = false;
+
+	public static void StartPlugin()
+	{
 		Initialize();
-		DontDestroyOnLoad(gameObject);
-		SceneManager.sceneLoaded += OnSceneLoaded;
+		DontDestroyOnLoad(instance.gameObject);
+		SceneManager.sceneLoaded += instance.OnSceneLoaded;
+		m_PluginStarted = true;
+#if UNITY_ANDROID
+		// PORT: aviso para suspender o TalkBack; so faz sentido no Android
+		if (m_IsEnabled)
+			instance.Say_Internal(Localize("TalkBack_PleaseSuspend"), false, true, (UAP_AudioQueue.EInterrupt)0x4f);
+#endif
+	}
+
+	public static bool IsPluginInit()
+	{
+		return m_IsInitialized;
+	}
+
+	public static bool IsPluginStarted()
+	{
+		return m_PluginStarted;
+	}
+
+	public static void ResetEnabledState()
+	{
+		m_IsEnabled = ShouldAutoEnable();
+		instance.EnableTouchBlocker(m_IsEnabled);
+		SavePluginEnabledState();
+	}
+
+	public static bool GetDetectVoiceOverAtRuntime()
+	{
+		Initialize();
+		return instance.m_DetectVoiceOverAtRuntime;
+	}
+
+	public static void SetDetectVoiceOverAtRuntime(bool detectAtRuntime)
+	{
+		Initialize();
+		instance.m_DetectVoiceOverAtRuntime = detectAtRuntime;
+	}
+
+	public static void SetFocusToLastOfPage()
+	{
+		if (instance == null)
+			return;
+		if (!IsActive())
+			return;
+		instance.SetFocusToLastOfPage_Internal();
+	}
+
+	private void SetFocusToLastOfPage_Internal()
+	{
+		if (m_BlockInput || !m_HandleUI)
+			return;
+		int count = m_ActiveContainers.Count;
+		if (count <= 0)
+			return;
+		int previousIndex = m_ActiveContainerIndex;
+		m_ActiveContainerIndex = count - 1;
+		m_ActiveContainers[m_ActiveContainerIndex].JumpToLast();
+		UpdateCurrentItem(0, false);
+		if (m_CurrentItem == null)
+			return;
+		if (previousIndex != 0)
+			ReadContainerName();
+		ReadItem(m_CurrentItem, true);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
