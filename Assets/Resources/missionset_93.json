@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"JumpOver","goal":"250"},{"scope":"MultiRun","type":"PowerUpBoost","goal":"25"},{"scope":"SingleRun","type":"CollectGhosts","goal":"400"}]}

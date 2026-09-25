@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"PowerUpCoinDoubler","goal":"7"},{"scope":"SingleRun","type":"ChangeLane","goal":"125"},{"scope":"MultiRun","type":"JumpOver","goal":"50"}]}

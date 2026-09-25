@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"CollectGhosts","goal":"7500"},{"scope":"SingleRun","type":"KillZombies","goal":"10"},{"scope":"MultiRun","type":"SlideUnder","goal":"250"}]}

@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"ChangeLane","goal":"1500"},{"scope":"SingleRun","type":"SlideCenter","goal":"40"},{"scope":"MultiRun","type":"PowerUp","goal":"65"}]}

@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1120 &112000000
+LightingDataAsset:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LightingData
+  m_Scene: {fileID: 102900000, guid: c9aac5c30327d2d46b76cc3b317666a3, type: 3}
+  m_Lightmaps: []
+  m_AOTextures: []
+  m_LightmapsCacheFiles: []
+  m_LightProbes: {fileID: 25800000, guid: 9b2055493593a174baa5af07d7f1b3c2, type: 2}
+  m_LightmapsMode: 1
+  m_BakedAmbientProbeInLinear:
+    sh[ 0]: 0.114802055
+    sh[ 1]: 0.006147307
+    sh[ 2]: -0.010435972
+    sh[ 3]: 1.3901088E-06
+    sh[ 4]: 7.077622E-07
+    sh[ 5]: -0.001517463
+    sh[ 6]: 0.012213723
+    sh[ 7]: -9.174177E-06
+    sh[ 8]: 0.017304692
+    sh[ 9]: 0.11976777
+    sh[10]: 0.037203774
+    sh[11]: -0.018356811
+    sh[12]: 3.2916878E-06
+    sh[13]: 1.572625E-06
+    sh[14]: -0.0032819668
+    sh[15]: 0.0144902645
+    sh[16]: -1.10471E-05
+    sh[17]: 0.019398266
+    sh[18]: 0.105756596
+    sh[19]: 0.06389044
+    sh[20]: -0.02477933
+    sh[21]: 5.9514095E-06
+    sh[22]: 2.9367316E-06
+    sh[23]: -0.006766416
+    sh[24]: 0.012178157
+    sh[25]: -8.391629E-06
+    sh[26]: 0.013148081
+  m_LightmappedRendererData: []
+  m_LightmappedRendererDataIDs: []
+  m_EnlightenSceneMapping:
+    m_Renderers: []
+    m_Systems: []
+    m_Probesets: []
+    m_SystemAtlases: []
+    m_TerrainChunks: []
+  m_EnlightenSceneMappingRendererIDs: []
+  m_Lights: []
+  m_LightBakingOutputs: []
+  m_BakedReflectionProbeCubemapCacheFiles: []
+  m_BakedReflectionProbeCubemaps:
+  - {fileID: 8900000, guid: 8cee9ca040116fb4ea1ea78ff3037db7, type: 3}
+  m_BakedReflectionProbes: []
+  m_EnlightenData: 556e69747946530000000007352e782e7800323032302e332e3135663200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  m_EnlightenDataVersion: 112

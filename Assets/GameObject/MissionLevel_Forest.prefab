@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  m_Layer: 0
+  m_Name: MissionLevel_Forest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c11569ba65e1bc536e7d31fdef61288, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  missionLevel: 1
+  levels:
+  - {fileID: 114724804207875695, guid: 2521a67ab56611b43ba74b73324680c1, type: 2}
+  - {fileID: 114724804207875695, guid: f054c6ad066ac514eba5266b8dc20f2a, type: 2}
+  - {fileID: 114724804207875695, guid: 1b623611588f19b4484388a182327d88, type: 2}
+  - {fileID: 114724804207875695, guid: 825c929cc2a564b45af64c25202d7944, type: 2}
+  - {fileID: 114724804207875695, guid: 2e21cca289938ce4baf57a877f2b4896, type: 2}
+  - {fileID: 114724804207875695, guid: 72645d8f14d5479489c5348e2eac0118, type: 2}
+  - {fileID: 114724804207875695, guid: e82f84957dcda9d40bcdb17ee916b7bf, type: 2}
+  - {fileID: 114724804207875695, guid: c866766d235e205439386d0ee6f51af0, type: 2}
+  startSpeed: 5
+  speedStep: 0.5
+  secondsTillSpeedUp: 14

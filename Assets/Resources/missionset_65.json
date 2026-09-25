@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"JumpRight","goal":"30"},{"scope":"SingleRun","type":"ScoreWithoutPowerUps","goal":"120000"},{"scope":"MultiRun","type":"DieGround","goal":"5"}]}

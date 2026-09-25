@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"DieGround","goal":"3"},{"scope":"MultiRun","type":"Slide","goal":"100"},{"scope":"SingleRun","type":"ScoreWithoutPowerUps","goal":"45000"}]}

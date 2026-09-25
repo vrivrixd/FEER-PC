@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"JumpLeft","goal":"10"},{"scope":"MultiRun","type":"PlayGame","goal":"3"},{"scope":"MultiRun","type":"Score","goal":"115000"}]}

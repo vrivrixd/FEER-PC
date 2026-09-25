@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1709254077376921
+GameObject:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Component:
+  - component: {fileID: 4730242686860875}
+  - component: {fileID: 114724804207875695}
+  m_Layer: 0
+  m_Name: MissionLevel_Factory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4730242686860875
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: -0, z: -0}
+--- !u!114 &114724804207875695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254077376921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c11569ba65e1bc536e7d31fdef61288, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  missionLevel: 1
+  levels:
+  - {fileID: 114724804207875695, guid: 2521a67ab56611b43ba74b73324680c1, type: 2}
+  - {fileID: 114724804207875695, guid: 9ea5ff6b552c07c479a2b171939f620e, type: 2}
+  - {fileID: 114724804207875695, guid: 9ed25281660744745b32496fac61c95a, type: 2}
+  - {fileID: 114724804207875695, guid: 9b6ad57c5ab0db4418d5ef6a7dac0134, type: 2}
+  - {fileID: 114724804207875695, guid: 6f869106fe9174245b074eebc269c0fd, type: 2}
+  - {fileID: 114724804207875695, guid: 7b7161633157acf44ba6376a6e7ebe1a, type: 2}
+  - {fileID: 114724804207875695, guid: dc4faf8a2031ebc42a8bcad9130c7e96, type: 2}
+  - {fileID: 114724804207875695, guid: c8ff636d331f3094dac2adc70ed89fe1, type: 2}
+  startSpeed: 5
+  speedStep: 0.5
+  secondsTillSpeedUp: 14

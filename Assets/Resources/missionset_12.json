@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"DodgeZombies","goal":"75"},{"scope":"SingleRun","type":"Jump","goal":"10"},{"scope":"MultiRun","type":"CollectGhosts","goal":"200"}]}

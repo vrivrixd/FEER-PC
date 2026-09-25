@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"JumpCenter","goal":"20"},{"scope":"MultiRun","type":"PowerUpWeapon","goal":"2"},{"scope":"SingleRun","type":"CollectGhosts","goal":"70"}]}

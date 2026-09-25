@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"DodgeZombies","goal":"500"},{"scope":"SingleRun","type":"CollectGhostsWithoutPowerUps","goal":"200"},{"scope":"SingleRun","type":"Jump","goal":"35"}]}

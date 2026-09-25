@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"DieAir","goal":"3"},{"scope":"SingleRun","type":"SlideLeft","goal":"20"},{"scope":"SingleRun","type":"JumpOver","goal":"7"}]}

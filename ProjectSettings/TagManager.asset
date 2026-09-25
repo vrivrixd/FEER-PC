@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - Zombie
+  - Ground
+  - Air
+  - 2nd Camera
+  - 3rd Camera GUI
+  - Collectible
+  - Consumable
+  - Projectile
+  - Hole
+  - FootstepSound
+  - HeightChange
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Zombie
+    uniqueID: 4230207161
+    locked: 0
+  - name: Lane
+    uniqueID: 2887966301
+    locked: 0

@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"Score","goal":"350000"},{"scope":"MultiRun","type":"PowerUpCoinDoubler","goal":"20"},{"scope":"SingleRun","type":"JumpOver","goal":"20"}]}

@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"ScoreWithoutPowerUps","goal":"95000"},{"scope":"MultiRun","type":"DieZombie","goal":"5"},{"scope":"SingleRun","type":"JumpLeft","goal":"25"}]}

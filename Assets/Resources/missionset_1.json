@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"JumpCenter","goal":"3"},{"scope":"MultiRun","type":"DodgeZombies","goal":"50"},{"scope":"SingleRun","type":"Score","goal":"600"}]}

@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"Jump","goal":"20"},{"scope":"SingleRun","type":"Score","goal":"45000"},{"scope":"MultiRun","type":"PowerUpBoost","goal":"5"}]}

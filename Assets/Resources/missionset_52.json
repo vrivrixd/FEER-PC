@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"PowerUpCoinDoubler","goal":"10"},{"scope":"MultiRun","type":"CollectGhosts","goal":"1000"},{"scope":"SingleRun","type":"ChangeLane","goal":"150"}]}

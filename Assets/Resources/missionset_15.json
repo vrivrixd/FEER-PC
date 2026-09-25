@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"KillZombies","goal":"1"},{"scope":"MultiRun","type":"Jump","goal":"50"},{"scope":"MultiRun","type":"PowerUp","goal":"5"}]}

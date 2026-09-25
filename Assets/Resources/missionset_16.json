@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"JumpRight","goal":"5"},{"scope":"MultiRun","type":"PowerUpCoinDoubler","goal":"2"},{"scope":"MultiRun","type":"SlideUnder","goal":"10"}]}

@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"DieAir","goal":"2"},{"scope":"MultiRun","type":"SlideRight","goal":"30"},{"scope":"SingleRun","type":"DodgeZombies","goal":"30"}]}

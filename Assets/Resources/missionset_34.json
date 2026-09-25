@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"CollectGhostsWithoutPowerUps","goal":"100"},{"scope":"MultiRun","type":"SlideCenter","goal":"50"},{"scope":"MultiRun","type":"JumpOver","goal":"30"}]}

@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"PowerUp","goal":"10"},{"scope":"MultiRun","type":"DieZombie","goal":"2"},{"scope":"SingleRun","type":"Score","goal":"30000"}]}

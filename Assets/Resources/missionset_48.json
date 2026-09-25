@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"SlideUnder","goal":"50"},{"scope":"MultiRun","type":"ChangeLane","goal":"500"},{"scope":"SingleRun","type":"CollectGhostsWithoutPowerUps","goal":"120"}]}

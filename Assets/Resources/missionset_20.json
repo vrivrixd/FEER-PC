@@ -1,0 +1,1 @@
+{"missions":[{"scope":"MultiRun","type":"Jump","goal":"75"},{"scope":"SingleRun","type":"ScoreWithoutCollectingGhosts","goal":"10000"},{"scope":"MultiRun","type":"PowerUpBoost","goal":"3"}]}

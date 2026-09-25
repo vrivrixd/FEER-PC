@@ -1,0 +1,1 @@
+{"missions":[{"scope":"SingleRun","type":"SlideUnder","goal":"10"},{"scope":"MultiRun","type":"JumpRight","goal":"100"},{"scope":"MultiRun","type":"PowerUpShield","goal":"10"}]}
