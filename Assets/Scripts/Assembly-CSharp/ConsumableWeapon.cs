@@ -150,7 +150,7 @@ public class ConsumableWeapon : Consumable
 		sprite.gameObject.SetActive(true);
 		m_LowPassFilter.cutoffFrequency = m_DefaultCutOffFrequency;
 		m_FirstPowerUpTold = false;
-		m_FirstPowerUpTold = !DataManager.Instance.m_PlayerData.isFirstAccessiblePowerUp;
+		m_FirstPowerUpTold = !DataManager.Instance.playerData.isFirstAccessiblePowerUp;
 		m_ObstacleAnimator.speed = 0f;
 		pool.Free(this);
 		m_StateStack[c_CURRENT_STATE] = c_STATE_NONE;
@@ -171,12 +171,12 @@ public class ConsumableWeapon : Consumable
 		m_Collider = GetComponent<BoxCollider>();
 		m_DefaultCutOffFrequency = m_LowPassFilter.cutoffFrequency;
 		m_Init = true;
-		m_FirstPowerUpTold = !DataManager.Instance.m_PlayerData.isFirstAccessiblePowerUp;
+		m_FirstPowerUpTold = !DataManager.Instance.playerData.isFirstAccessiblePowerUp;
 	}
 
 	protected void UpdateHearableInFront(float currentPosition)
 	{
-		if (!m_FirstPowerUpTold && currentPosition <= 8f && DataManager.Instance.m_PlayerData.isFirstAccessiblePowerUp)
+		if (!m_FirstPowerUpTold && currentPosition <= 8f && DataManager.Instance.playerData.isFirstAccessiblePowerUp)
 		{
 			m_FirstPowerUpTold = true;
 			CustomGameManager.Instance.FirstTimeAccessiblePowerUp(ConsumableType.None);
@@ -265,7 +265,7 @@ public class ConsumableWeapon : Consumable
 
 	private void HandleLaneChange()
 	{
-		int currentLane = CustomGameManager.Instance.m_CurrentLane;
+		int currentLane = CustomGameManager.Instance.currentLane;
 		if (currentLane != m_CurrentLane)
 		{
 			m_CurrentLane = currentLane;
@@ -279,7 +279,7 @@ public class ConsumableWeapon : Consumable
 
 	private void StartObstacleSound(float currentPosition)
 	{
-		m_CurrentLane = CustomGameManager.Instance.m_CurrentLane;
+		m_CurrentLane = CustomGameManager.Instance.currentLane;
 		if (m_CurrentLane < m_ObstacleLane)
 		{
 			m_Audio.panStereo = 1f;

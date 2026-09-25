@@ -134,7 +134,7 @@ public class ObstaclePatroling : Obstacle
 
 	protected void StartObstacleSound()
 	{
-		m_CurrentLane = CustomGameManager.Instance.m_CurrentLane;
+		m_CurrentLane = CustomGameManager.Instance.currentLane;
 		m_Audio.panStereo = GetPan();
 		float z = m_Transform.position.z;
 		m_Audio.volume = (z <= minDistance) ? 1f : (1f - (m_Transform.position.z - minDistance) / m_Distance);
@@ -211,7 +211,7 @@ public class ObstaclePatroling : Obstacle
 
 	protected void HandleLaneChange()
 	{
-		int currentLane = CustomGameManager.Instance.m_CurrentLane;
+		int currentLane = CustomGameManager.Instance.currentLane;
 		if (currentLane != m_CurrentLane)
 		{
 			m_CurrentLane = currentLane;
@@ -255,9 +255,9 @@ public class ObstaclePatroling : Obstacle
 		}
 		if (currentPosition >= 1f)
 		{
-			if ((CustomGameManager.Instance.m_isSliding && obstacleType == SpawnElementType.PatrolingObstacleAir) || (CustomGameManager.Instance.m_isJumping && obstacleType == SpawnElementType.PatrolingObstacleGround))
+			if ((CustomGameManager.Instance.isSliding && obstacleType == SpawnElementType.PatrolingObstacleAir) || (CustomGameManager.Instance.isJumping && obstacleType == SpawnElementType.PatrolingObstacleGround))
 			{
-				transform.Translate(0f, 0f, Time.deltaTime * CustomGameManager.Instance.m_Speed * -1.3f);
+				transform.Translate(0f, 0f, Time.deltaTime * CustomGameManager.Instance.speed * -1.3f);
 			}
 			return;
 		}
@@ -330,7 +330,7 @@ public class ObstaclePatroling : Obstacle
 
 	protected void Patrole()
 	{
-		m_PatrolingTransform.localPosition = Vector3.MoveTowards(m_PatrolingTransform.localPosition, m_TargetPosition, Time.deltaTime * (patrolingSpeed + CustomGameManager.Instance.m_Speed * 0.25f));
+		m_PatrolingTransform.localPosition = Vector3.MoveTowards(m_PatrolingTransform.localPosition, m_TargetPosition, Time.deltaTime * (patrolingSpeed + CustomGameManager.Instance.speed * 0.25f));
 		float x = m_PatrolingTransform.localPosition.x;
 		if (x <= 0f - (maxXPatroling - 0.01f))
 		{

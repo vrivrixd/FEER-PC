@@ -241,7 +241,7 @@ public class CollectibleGhost : Collectible
 
 	private void HandleLaneChange()
 	{
-		int currentLane = CustomGameManager.Instance.m_CurrentLane;
+		int currentLane = CustomGameManager.Instance.currentLane;
 		if (currentLane != m_CurrentLane)
 		{
 			m_CurrentLane = currentLane;
@@ -255,7 +255,7 @@ public class CollectibleGhost : Collectible
 
 	private void StartObstacleSound(float currentPosition)
 	{
-		m_CurrentLane = CustomGameManager.Instance.m_CurrentLane;
+		m_CurrentLane = CustomGameManager.Instance.currentLane;
 		if (m_CurrentLane < m_ObstacleLane)
 		{
 			m_Audio.panStereo = 1f;

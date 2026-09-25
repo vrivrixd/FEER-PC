@@ -169,9 +169,9 @@ public class ObstacleAllLane : Obstacle
 		}
 		if (currentPosition >= 1f)
 		{
-			if ((CustomGameManager.Instance.m_isSliding && obstacleType == SpawnElementType.AllLaneAirObstacle) || (CustomGameManager.Instance.m_isJumping && obstacleType == SpawnElementType.AllLaneGroundObstacle))
+			if ((CustomGameManager.Instance.isSliding && obstacleType == SpawnElementType.AllLaneAirObstacle) || (CustomGameManager.Instance.isJumping && obstacleType == SpawnElementType.AllLaneGroundObstacle))
 			{
-				transform.Translate(0f, 0f, Time.deltaTime * CustomGameManager.Instance.m_Speed * -1.3f);
+				transform.Translate(0f, 0f, Time.deltaTime * CustomGameManager.Instance.speed * -1.3f);
 			}
 			return;
 		}

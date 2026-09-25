@@ -330,12 +330,12 @@ public class PlayerInputController : MonoBehaviour
 		if (m_ActionState == c_JUMPING)
 		{
 			playerCollider.Jump(false);
-			CustomGameManager.Instance.m_isJumping = false;
+			CustomGameManager.Instance.isJumping = false;
 		}
 		if (m_ActionState == c_SLIDING)
 		{
 			playerCollider.Slide(false);
-			CustomGameManager.Instance.m_isSliding = false;
+			CustomGameManager.Instance.isSliding = false;
 		}
 		m_ActionState = 0;
 		if (projectileParent != null)
@@ -384,13 +384,13 @@ public class PlayerInputController : MonoBehaviour
 		case c_JUMPING:
 			mainCamera.Jump(false);
 			playerCollider.Jump(false);
-			CustomGameManager.Instance.m_isJumping = false;
+			CustomGameManager.Instance.isJumping = false;
 			audioJumpEnd.Play();
 			break;
 		case c_SLIDING:
 			mainCamera.Slide(false);
 			playerCollider.Slide(false);
-			CustomGameManager.Instance.m_isSliding = false;
+			CustomGameManager.Instance.isSliding = false;
 			audioSlide.Stop();
 			break;
 		}
@@ -424,12 +424,12 @@ public class PlayerInputController : MonoBehaviour
 		{
 			mainCamera.Slide(false);
 			playerCollider.Slide(false);
-			CustomGameManager.Instance.m_isSliding = false;
+			CustomGameManager.Instance.isSliding = false;
 		}
 		mainCamera.Jump(true);
-		m_JumpStart = CustomGameManager.Instance.m_TotalWorldDistance;
+		m_JumpStart = CustomGameManager.Instance.worldDistance;
 		playerCollider.Jump(true);
-		CustomGameManager.Instance.m_isJumping = true;
+		CustomGameManager.Instance.isJumping = true;
 		CustomGameManager.Instance.Jumped();
 		audioJumpStart.Play();
 		if (!audioPlayerHeartbeat.isPlaying)
@@ -452,7 +452,7 @@ public class PlayerInputController : MonoBehaviour
 		{
 			mainCamera.Jump(false);
 			playerCollider.Jump(false);
-			CustomGameManager.Instance.m_isJumping = false;
+			CustomGameManager.Instance.isJumping = false;
 			if (audioJumpStart.isPlaying)
 			{
 				audioJumpStart.Stop();
@@ -463,9 +463,9 @@ public class PlayerInputController : MonoBehaviour
 			}
 		}
 		mainCamera.Slide(true);
-		m_SlideStart = CustomGameManager.Instance.m_TotalWorldDistance;
+		m_SlideStart = CustomGameManager.Instance.worldDistance;
 		playerCollider.Slide(true);
-		CustomGameManager.Instance.m_isSliding = true;
+		CustomGameManager.Instance.isSliding = true;
 		CustomGameManager.Instance.Slided();
 		audioSlide.Play();
 		if (!audioPlayerHeartbeat.isPlaying)
@@ -552,7 +552,7 @@ public class PlayerInputController : MonoBehaviour
 		{
 			return;
 		}
-		PlayerData_v_1_1_3 playerData = DataManager.Instance.m_PlayerData;
+		PlayerData_v_1_1_3 playerData = DataManager.Instance.playerData;
 		// PORT: além das setas originais, aceita os gestos virtuais do PortInput (joystick/mouse).
 		bool keyLeft = Input.GetKeyDown(KeyCode.LeftArrow) || PortInput.GameSwipeLeft;
 		bool keyRight = Input.GetKeyDown(KeyCode.RightArrow) || PortInput.GameSwipeRight;
@@ -647,7 +647,7 @@ public class PlayerInputController : MonoBehaviour
 		if (m_ActionState == c_JUMPING)
 		{
 			float length = m_Tutorial ? 7f : jumpLength;
-			if ((CustomGameManager.Instance.m_TotalWorldDistance - m_JumpStart) / length >= 1f)
+			if ((CustomGameManager.Instance.worldDistance - m_JumpStart) / length >= 1f)
 			{
 				SwitchActionState(c_RUNNING);
 			}
@@ -655,7 +655,7 @@ public class PlayerInputController : MonoBehaviour
 		else if (m_ActionState == c_SLIDING)
 		{
 			float length = m_Tutorial ? 7f : slideLength;
-			if ((CustomGameManager.Instance.m_TotalWorldDistance - m_SlideStart) / length >= 1f)
+			if ((CustomGameManager.Instance.worldDistance - m_SlideStart) / length >= 1f)
 			{
 				SwitchActionState(c_RUNNING);
 			}
@@ -706,7 +706,7 @@ public class PlayerInputController : MonoBehaviour
 		{
 			return;
 		}
-		if (DataManager.Instance.m_PlayerData.useCenterLaneOrientation)
+		if (DataManager.Instance.playerData.useCenterLaneOrientation)
 		{
 			value = 0f - value;
 		}
