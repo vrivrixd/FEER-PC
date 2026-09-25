@@ -330,12 +330,12 @@ public class PlayerInputController : MonoBehaviour
 		if (m_ActionState == c_JUMPING)
 		{
 			playerCollider.Jump(false);
-			CustomGameManager.instance.m_isJumping = false;
+			CustomGameManager.Instance.m_isJumping = false;
 		}
 		if (m_ActionState == c_SLIDING)
 		{
 			playerCollider.Slide(false);
-			CustomGameManager.instance.m_isSliding = false;
+			CustomGameManager.Instance.m_isSliding = false;
 		}
 		m_ActionState = 0;
 		if (projectileParent != null)
@@ -384,13 +384,13 @@ public class PlayerInputController : MonoBehaviour
 		case c_JUMPING:
 			mainCamera.Jump(false);
 			playerCollider.Jump(false);
-			CustomGameManager.instance.m_isJumping = false;
+			CustomGameManager.Instance.m_isJumping = false;
 			audioJumpEnd.Play();
 			break;
 		case c_SLIDING:
 			mainCamera.Slide(false);
 			playerCollider.Slide(false);
-			CustomGameManager.instance.m_isSliding = false;
+			CustomGameManager.Instance.m_isSliding = false;
 			audioSlide.Stop();
 			break;
 		}
@@ -424,13 +424,13 @@ public class PlayerInputController : MonoBehaviour
 		{
 			mainCamera.Slide(false);
 			playerCollider.Slide(false);
-			CustomGameManager.instance.m_isSliding = false;
+			CustomGameManager.Instance.m_isSliding = false;
 		}
 		mainCamera.Jump(true);
-		m_JumpStart = CustomGameManager.instance.m_TotalWorldDistance;
+		m_JumpStart = CustomGameManager.Instance.m_TotalWorldDistance;
 		playerCollider.Jump(true);
-		CustomGameManager.instance.m_isJumping = true;
-		CustomGameManager.instance.Jumped();
+		CustomGameManager.Instance.m_isJumping = true;
+		CustomGameManager.Instance.Jumped();
 		audioJumpStart.Play();
 		if (!audioPlayerHeartbeat.isPlaying)
 		{
@@ -452,7 +452,7 @@ public class PlayerInputController : MonoBehaviour
 		{
 			mainCamera.Jump(false);
 			playerCollider.Jump(false);
-			CustomGameManager.instance.m_isJumping = false;
+			CustomGameManager.Instance.m_isJumping = false;
 			if (audioJumpStart.isPlaying)
 			{
 				audioJumpStart.Stop();
@@ -463,10 +463,10 @@ public class PlayerInputController : MonoBehaviour
 			}
 		}
 		mainCamera.Slide(true);
-		m_SlideStart = CustomGameManager.instance.m_TotalWorldDistance;
+		m_SlideStart = CustomGameManager.Instance.m_TotalWorldDistance;
 		playerCollider.Slide(true);
-		CustomGameManager.instance.m_isSliding = true;
-		CustomGameManager.instance.Slided();
+		CustomGameManager.Instance.m_isSliding = true;
+		CustomGameManager.Instance.Slided();
 		audioSlide.Play();
 		if (!audioPlayerHeartbeat.isPlaying)
 		{
@@ -552,7 +552,7 @@ public class PlayerInputController : MonoBehaviour
 		{
 			return;
 		}
-		PlayerData_v_1_1_3 playerData = DataManager.instance.m_PlayerData;
+		PlayerData_v_1_1_3 playerData = DataManager.Instance.m_PlayerData;
 		// PORT: além das setas originais, aceita os gestos virtuais do PortInput (joystick/mouse).
 		bool keyLeft = Input.GetKeyDown(KeyCode.LeftArrow) || PortInput.GameSwipeLeft;
 		bool keyRight = Input.GetKeyDown(KeyCode.RightArrow) || PortInput.GameSwipeRight;
@@ -647,7 +647,7 @@ public class PlayerInputController : MonoBehaviour
 		if (m_ActionState == c_JUMPING)
 		{
 			float length = m_Tutorial ? 7f : jumpLength;
-			if ((CustomGameManager.instance.m_TotalWorldDistance - m_JumpStart) / length >= 1f)
+			if ((CustomGameManager.Instance.m_TotalWorldDistance - m_JumpStart) / length >= 1f)
 			{
 				SwitchActionState(c_RUNNING);
 			}
@@ -655,7 +655,7 @@ public class PlayerInputController : MonoBehaviour
 		else if (m_ActionState == c_SLIDING)
 		{
 			float length = m_Tutorial ? 7f : slideLength;
-			if ((CustomGameManager.instance.m_TotalWorldDistance - m_SlideStart) / length >= 1f)
+			if ((CustomGameManager.Instance.m_TotalWorldDistance - m_SlideStart) / length >= 1f)
 			{
 				SwitchActionState(c_RUNNING);
 			}
@@ -683,7 +683,7 @@ public class PlayerInputController : MonoBehaviour
 		if ((uint)lane < 3u)
 		{
 			m_CurrentLane = lane;
-			CustomGameManager.instance.LaneChangedTo(m_CurrentLane);
+			CustomGameManager.Instance.LaneChangedTo(m_CurrentLane);
 			m_TargetPosition = new Vector3(laneWidth * (float)(m_CurrentLane - 1), 0f, 0f);
 			audioChangeLane.Play();
 		}
@@ -706,7 +706,7 @@ public class PlayerInputController : MonoBehaviour
 		{
 			return;
 		}
-		if (DataManager.instance.m_PlayerData.useCenterLaneOrientation)
+		if (DataManager.Instance.m_PlayerData.useCenterLaneOrientation)
 		{
 			value = 0f - value;
 		}

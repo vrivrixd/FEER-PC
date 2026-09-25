@@ -36,7 +36,7 @@ public class Projectile : MonoBehaviour
 
 	private void Update()
 	{
-		GameStateName name = CustomGameManager.instance.topState.GetName();
+		GameStateName name = CustomGameManager.Instance.topState.GetName();
 		if (name != m_CurrentGameState)
 		{
 			if (name == GameStateName.Pause)
@@ -48,7 +48,7 @@ public class Projectile : MonoBehaviour
 			}
 			else if (name == GameStateName.PlayGame)
 			{
-				if (m_CurrentGameState == GameStateName.Pause && CustomGameManager.instance.topState.GetStatus() == GameStateStatus.Resume)
+				if (m_CurrentGameState == GameStateName.Pause && CustomGameManager.Instance.topState.GetStatus() == GameStateStatus.Resume)
 				{
 					m_isResumed = true;
 				}
@@ -66,7 +66,7 @@ public class Projectile : MonoBehaviour
 		}
 		if (m_isResumed)
 		{
-			if (CustomGameManager.instance.topState.GetStatus() == GameStateStatus.Running)
+			if (CustomGameManager.Instance.topState.GetStatus() == GameStateStatus.Running)
 			{
 				m_isResumed = false;
 				UnpauseProjectile();

@@ -9,17 +9,17 @@ public class ObstaclePooler : MonoBehaviour
 
 	public ObstaclePool GetPool(Obstacle obstacle)
 	{
-		if (!s_ObstaclePool.ContainsKey(obstacle.m_ObjectID))
+		if (!s_ObstaclePool.ContainsKey(obstacle.objectID))
 		{
 			CreatePool(obstacle);
 		}
-		return s_ObstaclePool[obstacle.m_ObjectID];
+		return s_ObstaclePool[obstacle.objectID];
 	}
 
 	private void CreatePool(Obstacle obstacle)
 	{
 		ObstaclePool pool = new ObstaclePool(obstacle, k_StartingPoolSize, transform);
-		s_ObstaclePool.Add(obstacle.m_ObjectID, pool);
+		s_ObstaclePool.Add(obstacle.objectID, pool);
 	}
 
 	public void ResetPools()

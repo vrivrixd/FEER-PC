@@ -9,17 +9,17 @@ public class ConsumablePooler : MonoBehaviour
 
 	public ConsumablePool GetPool(Consumable consumable)
 	{
-		if (!s_ConsumablePool.ContainsKey(consumable.m_ObjectID))
+		if (!s_ConsumablePool.ContainsKey(consumable.objectID))
 		{
 			CreatePool(consumable);
 		}
-		return s_ConsumablePool[consumable.m_ObjectID];
+		return s_ConsumablePool[consumable.objectID];
 	}
 
 	private void CreatePool(Consumable consumable)
 	{
 		ConsumablePool pool = new ConsumablePool(consumable, k_StartingPoolSize, transform);
-		s_ConsumablePool.Add(consumable.m_ObjectID, pool);
+		s_ConsumablePool.Add(consumable.objectID, pool);
 	}
 
 	public void ResetPools()

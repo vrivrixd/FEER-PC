@@ -9,17 +9,17 @@ public class ProjectilePooler : MonoBehaviour
 
 	public ProjectilePool GetPool(Projectile projectile)
 	{
-		if (!s_ProjectilePool.ContainsKey(projectile.m_ObjectID))
+		if (!s_ProjectilePool.ContainsKey(projectile.objectID))
 		{
 			CreatePool(projectile);
 		}
-		return s_ProjectilePool[projectile.m_ObjectID];
+		return s_ProjectilePool[projectile.objectID];
 	}
 
 	private void CreatePool(Projectile projectile)
 	{
 		ProjectilePool pool = new ProjectilePool(projectile, k_StartingPoolSize, transform);
-		s_ProjectilePool.Add(projectile.m_ObjectID, pool);
+		s_ProjectilePool.Add(projectile.objectID, pool);
 	}
 
 	public void ResetPools()

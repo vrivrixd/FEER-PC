@@ -26,7 +26,7 @@ public class Fog : MonoBehaviour
 
 	public void MoveFog()
 	{
-		float speed = CustomGameManager.instance.m_Speed;
+		float speed = CustomGameManager.Instance.m_Speed;
 		float scale = m_SpeedScaleFactor;
 		float deltaTime = Time.deltaTime;
 		for (int i = 0; i < fogElements.Length; i++)

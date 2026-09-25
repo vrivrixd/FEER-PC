@@ -9,17 +9,17 @@ public class CollectiblePooler : MonoBehaviour
 
 	public CollectiblePool GetPool(Collectible collectible)
 	{
-		if (!s_CollectiblePool.ContainsKey(collectible.m_ObjectID))
+		if (!s_CollectiblePool.ContainsKey(collectible.objectID))
 		{
 			CreatePool(collectible);
 		}
-		return s_CollectiblePool[collectible.m_ObjectID];
+		return s_CollectiblePool[collectible.objectID];
 	}
 
 	private void CreatePool(Collectible collectible)
 	{
 		CollectiblePool pool = new CollectiblePool(collectible, k_StartingPoolSize, transform);
-		s_CollectiblePool.Add(collectible.m_ObjectID, pool);
+		s_CollectiblePool.Add(collectible.objectID, pool);
 	}
 
 	public void ResetPools()

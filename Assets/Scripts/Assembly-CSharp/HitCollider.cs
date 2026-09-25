@@ -15,13 +15,13 @@ public class HitCollider : MonoBehaviour
 		switch (c.gameObject.layer)
 		{
 		case k_CollectiblesLayerIndex:
-			CustomGameManager.instance.CollectedGhost();
+			CustomGameManager.Instance.CollectedGhost();
 			break;
 		case k_AirLayerIndex:
-			CustomGameManager.instance.SlidedUnderRavens();
+			CustomGameManager.Instance.SlidedUnderRavens();
 			break;
 		case k_GroundLayerIndex:
-			CustomGameManager.instance.JumpedOverHands();
+			CustomGameManager.Instance.JumpedOverHands();
 			break;
 		}
 	}
@@ -31,16 +31,16 @@ public class HitCollider : MonoBehaviour
 		switch ((int)consumable)
 		{
 		case 1:
-			CustomGameManager.instance.BoostCollected();
+			CustomGameManager.Instance.BoostCollected();
 			break;
 		case 2:
-			CustomGameManager.instance.CoinDoublerCollected();
+			CustomGameManager.Instance.CoinDoublerCollected();
 			break;
 		case 3:
-			CustomGameManager.instance.ShieldCollected();
+			CustomGameManager.Instance.ShieldCollected();
 			break;
 		case 4:
-			CustomGameManager.instance.WeaponCollected();
+			CustomGameManager.Instance.WeaponCollected();
 			break;
 		}
 	}

@@ -9,17 +9,17 @@ public class TrackPartPooler : MonoBehaviour
 
 	public TrackPartPool GetPool(TrackPart trackPart)
 	{
-		if (!s_TrackPartPool.ContainsKey(trackPart.m_ObjectID))
+		if (!s_TrackPartPool.ContainsKey(trackPart.objectID))
 		{
 			CreatePool(trackPart);
 		}
-		return s_TrackPartPool[trackPart.m_ObjectID];
+		return s_TrackPartPool[trackPart.objectID];
 	}
 
 	private void CreatePool(TrackPart trackPart)
 	{
 		TrackPartPool pool = new TrackPartPool(trackPart, k_StartingPoolSize, transform);
-		s_TrackPartPool.Add(trackPart.m_ObjectID, pool);
+		s_TrackPartPool.Add(trackPart.objectID, pool);
 	}
 
 	public void ResetPools()
