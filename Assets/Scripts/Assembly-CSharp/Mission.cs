@@ -32,10 +32,11 @@ public abstract class Mission
 	{
 		get
 		{
-			return 0f;
+			return m_Progress;
 		}
 		set
 		{
+			m_Progress = value;
 		}
 	}
 
@@ -43,22 +44,23 @@ public abstract class Mission
 	{
 		get
 		{
-			return false;
+			return m_Completed;
 		}
 		set
 		{
+			m_Completed = value;
 		}
 	}
 
-	public float startProgress => 0f;
+	public float startProgress => m_StartProgress;
 
-	public float goal => 0f;
+	public float goal => m_Goal;
 
-	public bool finished => false;
+	public bool finished => m_Finished;
 
-	public MissionType missionType => MissionType.JumpOver;
+	public MissionType missionType => m_Type;
 
-	public MissionScope missionScope => MissionScope.SingleRun;
+	public MissionScope missionScope => m_Scope;
 
 	public abstract string GetMissionTitle(bool ttsValue = false);
 

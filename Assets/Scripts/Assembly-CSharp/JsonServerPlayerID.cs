@@ -9,5 +9,7 @@ public class JsonServerPlayerID
 
 	public JsonServerPlayerID(string id, string hash)
 	{
+		playerId = id;
+		this.hash = hash;
 	}
 }

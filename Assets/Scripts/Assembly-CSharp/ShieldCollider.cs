@@ -12,5 +12,17 @@ public class ShieldCollider : MonoBehaviour
 
 	private void OnTriggerEnter(Collider c)
 	{
+		int layer = c.gameObject.layer;
+		if ((uint)(layer - 8) > 2u)
+		{
+			return;
+		}
+		Obstacle obstacle = c.gameObject.GetComponent<Obstacle>();
+		if (obstacle == null)
+		{
+			obstacle = c.GetComponentInParent<Obstacle>();
+		}
+		obstacle.ShieldEntered();
+		playerCollider.ShieldActivated(true);
 	}
 }

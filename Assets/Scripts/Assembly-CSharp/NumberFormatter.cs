@@ -2,11 +2,11 @@ public static class NumberFormatter
 {
 	public static string FormatToLocale(int intNumber)
 	{
-		return null;
+		return string.Format(LocalizationManager.Instance.GetCultureInfo(), "{0:n0}", intNumber);
 	}
 
 	public static string FormatToLocale(long longNumber)
 	{
-		return null;
+		return string.Format(LocalizationManager.Instance.GetCultureInfo(), "{0:n0}", longNumber);
 	}
 }
