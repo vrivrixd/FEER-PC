@@ -3,14 +3,14 @@ using UnityEngine.Audio;
 
 public abstract class Obstacle : MonoBehaviour
 {
-	protected string m_ObjectID;
+	protected string m_ObjectID = System.Guid.NewGuid().ToString();
 
 	[HideInInspector]
 	public ObstaclePool pool;
 
 	protected TrackManager m_TrackManager;
 
-	protected int[] m_StateStack;
+	protected int[] m_StateStack = new int[2];
 
 	protected const int c_STATE_SPAWNED = 0;
 
@@ -36,7 +36,7 @@ public abstract class Obstacle : MonoBehaviour
 
 	public bool hideFog;
 
-	public string objectID => null;
+	public string objectID => m_ObjectID;
 
 	protected abstract void SwitchStateTo(int state);
 

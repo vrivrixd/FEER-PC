@@ -2,7 +2,7 @@ using UnityEngine;
 
 public abstract class Collectible : MonoBehaviour
 {
-	protected string m_ObjectID;
+	protected string m_ObjectID = System.Guid.NewGuid().ToString();
 
 	[HideInInspector]
 	public CollectiblePool pool;
@@ -11,7 +11,7 @@ public abstract class Collectible : MonoBehaviour
 
 	protected TrackManager m_TrackManager;
 
-	protected int[] m_StateStack;
+	protected int[] m_StateStack = new int[2];
 
 	protected const int c_STATE_SPAWNED = 0;
 
@@ -27,7 +27,7 @@ public abstract class Collectible : MonoBehaviour
 
 	protected const int c_CURRENT_STATE = 0;
 
-	public string objectID => null;
+	public string objectID => m_ObjectID;
 
 	protected abstract void SwitchStateTo(int state);
 
