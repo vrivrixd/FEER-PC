@@ -1,48 +1,52 @@
 public class MissionSlide : Mission
 {
-	public override void IncreaseProgress()
-	{
-	}
-
 	public MissionSlide(MissionScope scope, float goal, float progress, bool completed)
 	{
+		InitMission(scope, MissionType.Slide, goal, progress, completed);
+		SetCountTitle("SLIDE", "time", "times");
+		m_MissionDesc = ScopeDesc();
 	}
 
 	public override void UpdateMissionThemeText()
 	{
 	}
 
+	public override void IncreaseProgress()
+	{
+	}
+
 	public override string GetMissionTitle(bool ttsValue = false)
 	{
-		return null;
+		return StdTitle(ttsValue);
 	}
 
 	public override string GetMissionDesc(bool ttsValue = false)
 	{
-		return null;
+		return m_MissionDesc;
 	}
 
 	public override string GetMissionProgress(bool ttsValue = false)
 	{
-		return null;
+		return StdProgress();
 	}
 
 	public override int GetLeftNumber()
 	{
-		return 0;
+		return StdLeftNumber();
 	}
 
 	public override float GetProgressInPercent()
 	{
-		return 0f;
+		return StdPercent();
 	}
 
 	public override void UpdateProgress()
 	{
+		StdUpdateProgress(CGM.slideCount);
 	}
 
 	public override float GetResultToSave()
 	{
-		return 0f;
+		return StdResultToSave();
 	}
 }

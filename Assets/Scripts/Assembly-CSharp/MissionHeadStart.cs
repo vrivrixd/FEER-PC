@@ -1,40 +1,44 @@
 public class MissionHeadStart : Mission
 {
-	public override void IncreaseProgress()
-	{
-	}
-
 	public MissionHeadStart(float goal, float progress, bool completed)
 	{
+		InitMission(MissionScope.MultiRun, MissionType.Headstart, goal, progress, completed);
+		SetCountTitle("USE A HEADSTART", "time", "times");
+		m_MissionDesc = L("in total");
 	}
 
 	public override void UpdateMissionThemeText()
 	{
 	}
 
+	public override void IncreaseProgress()
+	{
+		StdIncrease();
+	}
+
 	public override string GetMissionTitle(bool ttsValue = false)
 	{
-		return null;
+		return StdTitle(ttsValue);
 	}
 
 	public override string GetMissionDesc(bool ttsValue = false)
 	{
-		return null;
+		return m_MissionDesc;
 	}
 
 	public override string GetMissionProgress(bool ttsValue = false)
 	{
-		return null;
+		return StdProgress();
 	}
 
 	public override int GetLeftNumber()
 	{
-		return 0;
+		return StdLeftNumber();
 	}
 
 	public override float GetProgressInPercent()
 	{
-		return 0f;
+		return StdPercent();
 	}
 
 	public override void UpdateProgress()
@@ -43,6 +47,6 @@ public class MissionHeadStart : Mission
 
 	public override float GetResultToSave()
 	{
-		return 0f;
+		return TotalResultToSave();
 	}
 }

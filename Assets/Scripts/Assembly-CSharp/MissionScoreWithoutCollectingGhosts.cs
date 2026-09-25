@@ -1,48 +1,52 @@
 public class MissionScoreWithoutCollectingGhosts : Mission
 {
-	public override void IncreaseProgress()
-	{
-	}
-
 	public MissionScoreWithoutCollectingGhosts(float goal, float progress, bool completed)
 	{
+		InitMission(MissionScope.SingleRun, MissionType.ScoreWithoutCollectingGhosts, goal, progress, completed);
+		m_MissionTitle = L("mission_score") + " " + NumberFormatter.FormatToLocale((int)goal) + " " + L("POINTS");
+		m_MissionDesc = L("no lights") + ", " + L("in a single run");
 	}
 
 	public override void UpdateMissionThemeText()
 	{
 	}
 
+	public override void IncreaseProgress()
+	{
+	}
+
 	public override string GetMissionTitle(bool ttsValue = false)
 	{
-		return null;
+		return m_MissionTitle;
 	}
 
 	public override string GetMissionDesc(bool ttsValue = false)
 	{
-		return null;
+		return m_MissionDesc;
 	}
 
 	public override string GetMissionProgress(bool ttsValue = false)
 	{
-		return null;
+		return WithoutProgress(CGM.ghostsCollected);
 	}
 
 	public override int GetLeftNumber()
 	{
-		return 0;
+		return WithoutLeftNumber(CGM.ghostsCollected);
 	}
 
 	public override float GetProgressInPercent()
 	{
-		return 0f;
+		return StdPercent();
 	}
 
 	public override void UpdateProgress()
 	{
+		WithoutUpdateProgress(CGM.ghostsCollected, CGM.score);
 	}
 
 	public override float GetResultToSave()
 	{
-		return 0f;
+		return ExactResultToSave();
 	}
 }
