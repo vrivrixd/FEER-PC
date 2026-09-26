@@ -31,21 +31,6 @@ public class PortRumble : MonoBehaviour
 		s_Instance = go.AddComponent<PortRumble>();
 	}
 
-	// Teste: Feer.exe -porttestrumble vibra 3 segundos depois de abrir
-	private void Start()
-	{
-		if (Array.IndexOf(Environment.GetCommandLineArgs(), "-porttestrumble") >= 0)
-		{
-			Invoke("TestRumble", 3f);
-		}
-	}
-
-	private void TestRumble()
-	{
-		Debug.Log("[PortRumble] teste");
-		Death();
-	}
-
 	// Vibra os controles conectados. strong = motor grande, weak = motor pequeno (0..1).
 	public static void Rumble(float strong, float weak, float seconds)
 	{
@@ -58,7 +43,7 @@ public class PortRumble : MonoBehaviour
 	// Vibracao quando o personagem morre
 	public static void Death()
 	{
-		Rumble(1f, 1f, 0.6f);
+		Rumble(1f, 1f, 0.8f);
 	}
 
 	// Vibracao quando o personagem tropeca (substitui Handheld.Vibrate do original)
