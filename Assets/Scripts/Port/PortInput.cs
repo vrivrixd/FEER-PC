@@ -9,7 +9,7 @@ using UnityEngine;
 // Joystick (Xbox/XInput e PlayStation DualShock 4/DualSense, detectado pelo nome):
 //   analogicos e direcional = setas;
 //   X/Cruz (A no Xbox) e botao do touchpad = Enter nos menus, Espaco (tocar/atirar) no jogo;
-//   Start/Options = Enter;
+//   Start/Options = pausa/retoma na corrida e no menu de pausa (como o Esc), Enter nos outros menus;
 //   Circulo (B no Xbox), Select/Back/Share = Esc (inclusive o gesto de pausa).
 // "No jogo" = o plugin de acessibilidade esta pausado (a corrida esta rodando sem menu).
 // Vibracao do controle: ver PortRumble.
@@ -42,6 +42,8 @@ public class PortInput : MonoBehaviour
 	private static bool s_Submit;
 
 	private static bool s_Cancel;
+
+	private static bool s_PauseToggle;
 
 	private const float c_StickThreshold = 0.6f;
 
@@ -117,10 +119,11 @@ public class PortInput : MonoBehaviour
 		s_Right = false;
 		s_Submit = false;
 		s_Cancel = false;
+		s_PauseToggle = false;
 		UpdateJoystick();
 		UpdateMouse();
 		// Esc do teclado ou do controle: gesto de pausa
-		if (Input.GetKeyDown(KeyCode.Escape) || s_Cancel)
+		if (Input.GetKeyDown(KeyCode.Escape) || s_Cancel || s_PauseToggle)
 		{
 			UAP_AccessibilityManager.PortTriggerPauseToggle();
 		}
@@ -163,6 +166,17 @@ public class PortInput : MonoBehaviour
 			m_Sony = !n.Contains("xbox") && !n.Contains("xinput") && (n.Contains("wireless controller") || n.Contains("dualsense") || n.Contains("dualshock") || n.Contains("sony") || n.Contains("playstation"));
 			break;
 		}
+	}
+
+	private static bool IsRunningOrPaused()
+	{
+		if (UAP_AccessibilityManager.IsEnabled() && !UAP_AccessibilityManager.IsActive())
+		{
+			return true;
+		}
+		CustomGameManager cgm = CustomGameManager.Instance;
+		GameState top = (cgm != null) ? cgm.topState : null;
+		return top != null && (top.GetName() == GameStateName.Pause || (!UAP_AccessibilityManager.IsEnabled() && top.GetName() == GameStateName.PlayGame));
 	}
 
 	private static bool AnyDown(KeyCode[] keys)
@@ -248,7 +262,15 @@ public class PortInput : MonoBehaviour
 		}
 		if (AnyDown(m_Sony ? c_SonySubmitButtons : c_XboxSubmitButtons))
 		{
-			s_Submit = true;
+			// Start: pausa/retoma na corrida e no menu de pausa (como o Esc); Enter nos outros menus.
+			if (IsRunningOrPaused())
+			{
+				s_PauseToggle = true;
+			}
+			else
+			{
+				s_Submit = true;
+			}
 		}
 		if (AnyDown(m_Sony ? c_SonyCancelButtons : c_XboxCancelButtons))
 		{
