@@ -359,6 +359,15 @@ public class UAP_AccessibilityManager : MonoBehaviour
 #endif
 	}
 
+	// PORT: gesto de pausa (toque duplo com dois dedos) acionado por tecla/joystick no PC
+	public static void PortTriggerPauseToggle()
+	{
+		if (instance == null || !instance.m_HandleMagicGestures)
+			return;
+		if (instance.m_OnPauseToggleCallbacks != null)
+			instance.m_OnPauseToggleCallbacks();
+	}
+
 	public static bool IsPluginInit()
 	{
 		return m_IsInitialized;
@@ -3092,12 +3101,12 @@ public class UAP_AccessibilityManager : MonoBehaviour
 			if (m_CurrentItem.m_Type == AccessibleUIGroupRoot.EUIElement.ESlider)
 			{
 				bool readValue = false;
-				if (Input.GetKeyDown(m_SliderIncrementKey))
+				if (PortInput.GetKeyDown(m_SliderIncrementKey))
 				{
 					(m_CurrentItem.m_Object).Increment();
 					readValue = true;
 				}
-				else if (Input.GetKeyDown(m_SliderDecrementKey))
+				else if (PortInput.GetKeyDown(m_SliderDecrementKey))
 				{
 					(m_CurrentItem.m_Object).Decrement();
 					readValue = true;
@@ -3111,13 +3120,13 @@ public class UAP_AccessibilityManager : MonoBehaviour
 			{
 				bool readValue = false;
 				bool boundReached = false;
-				if (Input.GetKeyDown(m_DropDownNextKey))
+				if (PortInput.GetKeyDown(m_DropDownNextKey))
 				{
 					if (!(m_CurrentItem.m_Object).Increment())
 						boundReached = true;
 					readValue = true;
 				}
-				else if (Input.GetKeyDown(m_DropDownPreviousKey))
+				else if (PortInput.GetKeyDown(m_DropDownPreviousKey))
 				{
 					if (!(m_CurrentItem.m_Object).Decrement())
 						boundReached = true;
@@ -3137,13 +3146,13 @@ public class UAP_AccessibilityManager : MonoBehaviour
 				}
 			}
 
-			if (Input.GetKeyDown(m_InteractKey))
+			if (PortInput.GetKeyDown(m_InteractKey))
 			{
 				m_CurrentItem.m_Object.InteractEnd();
 				LeaveFocussedItem();
 			}
 
-			if (Input.GetKeyDown(m_AbortKey))
+			if (PortInput.GetKeyDown(m_AbortKey))
 			{
 				CancelFocussedItem();
 			}
@@ -3158,16 +3167,16 @@ public class UAP_AccessibilityManager : MonoBehaviour
 				if (IsActiveContainer2DNavigation())
 				{
 					//Debug.Log("Handling 2D Navigation");
-					if (Input.GetKeyDown(m_DownKey))
+					if (PortInput.GetKeyDown(m_DownKey))
 						Navigate2DUIElement(ESDirection.EDown);
-					if (Input.GetKeyDown(m_UpKey))
+					if (PortInput.GetKeyDown(m_UpKey))
 						Navigate2DUIElement(ESDirection.EUp);
-					if (Input.GetKeyDown(m_RightKey))
+					if (PortInput.GetKeyDown(m_RightKey))
 						Navigate2DUIElement(ESDirection.ERight);
-					if (Input.GetKeyDown(m_LeftKey))
+					if (PortInput.GetKeyDown(m_LeftKey))
 						Navigate2DUIElement(ESDirection.ELeft);
 
-					if (Input.GetKeyDown(m_DownKey) || Input.GetKeyDown(m_UpKey) || Input.GetKeyDown(m_RightKey) || Input.GetKeyDown(m_LeftKey))
+					if (PortInput.GetKeyDown(m_DownKey) || PortInput.GetKeyDown(m_UpKey) || PortInput.GetKeyDown(m_RightKey) || PortInput.GetKeyDown(m_LeftKey))
 					{
 						//Debug.Log("Navigated");
 						return;
@@ -3176,17 +3185,17 @@ public class UAP_AccessibilityManager : MonoBehaviour
 				else
 				{
 					// Arrow keys to navigate
-					if (Input.GetKeyDown(m_NextElementKey))
+					if (PortInput.GetKeyDown(m_NextElementKey))
 					{
 						IncrementUIElement();
 						return;
 					}
-					if (Input.GetKeyDown(m_PreviousElementKey))
+					if (PortInput.GetKeyDown(m_PreviousElementKey))
 					{
 						DecrementUIElement();
 						return;
 					}
-					if (Input.GetKeyDown(m_PreviousContainerKey) || (m_UseTabAndShiftTabForContainerJumping && Input.GetKeyDown(KeyCode.Tab) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))))
+					if (PortInput.GetKeyDown(m_PreviousContainerKey) || (m_UseTabAndShiftTabForContainerJumping && PortInput.GetKeyDown(KeyCode.Tab) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))))
 					{
 						int currentContainerIndex = m_ActiveContainerIndex;
 						if (DecrementContainer(true))
@@ -3203,7 +3212,7 @@ public class UAP_AccessibilityManager : MonoBehaviour
 						ReadItem(m_CurrentItem);
 						return;
 					}
-					if (Input.GetKeyDown(m_NextContainerKey) || (m_UseTabAndShiftTabForContainerJumping && Input.GetKeyDown(KeyCode.Tab)))
+					if (PortInput.GetKeyDown(m_NextContainerKey) || (m_UseTabAndShiftTabForContainerJumping && PortInput.GetKeyDown(KeyCode.Tab)))
 					{
 						int currentContainerIndex = m_ActiveContainerIndex;
 						if (IncrementContainer(true))
@@ -3222,7 +3231,7 @@ public class UAP_AccessibilityManager : MonoBehaviour
 					}
 				}
 
-				if (Input.GetKeyDown(m_InteractKey))
+				if (PortInput.GetKeyDown(m_InteractKey))
 				{
 					// Interact with current element
 					InteractWithElement(m_CurrentItem);

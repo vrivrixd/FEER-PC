@@ -554,10 +554,10 @@ public class PlayerInputController : MonoBehaviour
 		}
 		PlayerData_v_1_1_3 playerData = DataManager.Instance.playerData;
 		// PORT: além das setas originais, aceita os gestos virtuais do PortInput (joystick/mouse).
-		bool keyLeft = Input.GetKeyDown(KeyCode.LeftArrow) || PortInput.GameSwipeLeft;
-		bool keyRight = Input.GetKeyDown(KeyCode.RightArrow) || PortInput.GameSwipeRight;
-		bool keyUp = Input.GetKeyDown(KeyCode.UpArrow) || PortInput.GameSwipeUp;
-		bool keyDown = Input.GetKeyDown(KeyCode.DownArrow) || PortInput.GameSwipeDown;
+		bool keyLeft = PortInput.GetKeyDown(KeyCode.LeftArrow) || PortInput.GameSwipeLeft;
+		bool keyRight = PortInput.GetKeyDown(KeyCode.RightArrow) || PortInput.GameSwipeRight;
+		bool keyUp = PortInput.GetKeyDown(KeyCode.UpArrow) || PortInput.GameSwipeUp;
+		bool keyDown = PortInput.GetKeyDown(KeyCode.DownArrow) || PortInput.GameSwipeDown;
 		if (keyLeft)
 		{
 			ChangeLane(playerData.useReverseLeftRight ? 1 : -1);
