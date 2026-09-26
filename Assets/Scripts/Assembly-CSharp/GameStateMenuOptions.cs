@@ -115,7 +115,7 @@ public class GameStateMenuOptions : GameState
 
 	public AudioSource powerUpAudioSource;
 
-	protected int m_currentPanel;
+	protected int m_currentPanel = -1;
 
 	protected bool m_Init;
 
@@ -143,17 +143,87 @@ public class GameStateMenuOptions : GameState
 
 	protected string m_strPanelAnnouncement;
 
+	private Text PanelBtnText(int panel)
+	{
+		switch (panel)
+		{
+		case 0:
+			return m_SettingsBtnText;
+		case 1:
+			return m_HelpBtnText;
+		case 2:
+			return m_ContactBtnText;
+		case 3:
+			return m_PrivacyBtnText;
+		default:
+			return null;
+		}
+	}
+
+	private GameObject PanelObject(int panel)
+	{
+		switch (panel)
+		{
+		case 0:
+			return settingsPanel;
+		case 1:
+			return helpPanel;
+		case 2:
+			return contactPanel;
+		case 3:
+			return privacyPanel;
+		default:
+			return null;
+		}
+	}
+
 	public override void Enter(GameState from)
 	{
+		if (!m_Init)
+		{
+			InitUI();
+		}
+		gameObject.SetActive(true);
+		if (UAP_AccessibilityManager.IsEnabled())
+		{
+			if (m_strPanelAnnouncement == null)
+			{
+				m_strPanelAnnouncement = LocalizationManager.Instance.GetLocalizedValue("OPTIONS");
+			}
+			UAP_AccessibilityManager.Say(m_strPanelAnnouncement, true, true, (UAP_AudioQueue.EInterrupt)0x4f);
+		}
+		navPanel.SetActive(true);
+		scoreCoinsPanel.Show(panelTransform, true, true, 1, true, GameStateName.None);
+		if (m_currentPanel == -1)
+		{
+			m_currentPanel = (from.GetName() != GameStateName.Init) ? 2 : 0;
+		}
+		else if (m_currentPanel < 0 || m_currentPanel > 3)
+		{
+			return;
+		}
+		PanelObject(m_currentPanel).SetActive(true);
+		for (int i = 0; i < 4; i++)
+		{
+			PanelBtnText(i).color = (i == m_currentPanel) ? selectedColor : Color.white;
+		}
 	}
 
 	public override void Exit(GameState to)
 	{
+		StopAllCoroutines();
+		gameObject.SetActive(false);
+		scoreCoinsPanel.Hide();
+		navPanel.SetActive(false);
+		settingsPanel.SetActive(false);
+		helpPanel.SetActive(false);
+		contactPanel.SetActive(false);
+		privacyPanel.SetActive(false);
 	}
 
 	public override GameStateName GetName()
 	{
-		return GameStateName.None;
+		return GameStateName.MenuOptions;
 	}
 
 	public override void Tick()
@@ -171,71 +241,155 @@ public class GameStateMenuOptions : GameState
 
 	private IEnumerator SwitchState(GameStateName toState)
 	{
-		return null;
+		GameObject panel = PanelObject(m_currentPanel);
+		if (panel != null)
+		{
+			panel.GetComponent<Animation>().Play("SmallPanelSlideOut");
+		}
+		navPanel.GetComponent<Animation>().Play("NavPanelSlideOut");
+		scoreCoinsPanel.scoreCoinsAnim.Play("ScoreCoinsSlideOut");
+		yield return new WaitForSeconds(0.5f);
+		CustomGameManager.Instance.SwitchState(toState);
+	}
+
+	private void SetToggleImage(Image image, bool selected)
+	{
+		image.color = selected ? selectedColor : notSelectedColor;
+		image.fillCenter = selected;
 	}
 
 	protected void InitUI()
 	{
+		langDropdown.ClearOptions();
+		langDropdown.AddOptions(LocalizationManager.Instance.GetLanguageDropdownList());
+		PlayerData_v_1_1_3 playerData = DataManager.Instance.playerData;
+		if (playerData.useReverseLeftRight)
+		{
+			leftRightReverseToggle.isOn = true;
+			SetToggleImage(leftRightReverseImage, true);
+		}
+		if (playerData.useReverseUpDown)
+		{
+			upDownReverseToggle.isOn = true;
+			SetToggleImage(upDownReverseImage, true);
+		}
+		if (playerData.useCenterLaneOrientation)
+		{
+			centerLaneToggle.isOn = true;
+			SetToggleImage(centerLaneImage, true);
+		}
+		if (playerData.useVibration)
+		{
+			vibrationToggle.isOn = true;
+			SetToggleImage(vibrationImage, true);
+		}
+		if (voiceOverToggle.isOn)
+		{
+			SetToggleImage(voiceOverImage, true);
+		}
+		m_SettingsBtnText = settingsBtn.GetComponentInChildren<Text>();
+		m_HelpBtnText = helpBtn.GetComponentInChildren<Text>();
+		m_ContactBtnText = contactBtn.GetComponentInChildren<Text>();
+		m_PrivacyBtnText = privacyBtn.GetComponentInChildren<Text>();
+		m_Init = true;
 	}
 
 	public void ChangeLanguageBtnClicked()
 	{
+		langDropdown.value = LocalizationManager.Instance.GetUserLanguageIndex();
+		changeLanguagePopUp.SetActive(true);
 	}
 
 	public void ChangeLanguageCancelClicked()
 	{
+		changeLanguagePopUp.SetActive(false);
 	}
 
 	public void ChangeLanguageOKClicked()
 	{
+		int value = langDropdown.value;
+		int userLanguageIndex = LocalizationManager.Instance.GetUserLanguageIndex();
+		changeLanguagePopUp.SetActive(false);
+		if (value != userLanguageIndex)
+		{
+			FeerSceneManager.Instance.ChangeLanguage(LocalizationManager.Instance.GetSystemLanguageForIndex(langDropdown.value));
+		}
+	}
+
+	private void ToggleClicked(Image image, bool selected)
+	{
+		if (m_Init && m_currentPanel != -1)
+		{
+			singleClickUI.Play();
+		}
+		SetToggleImage(image, selected);
 	}
 
 	public void ValueChangedReverseLeftRight(bool selected)
 	{
+		DataManager.Instance.UseReverseLeftRight(selected);
+		ToggleClicked(leftRightReverseImage, selected);
 	}
 
 	public void ValueChangedReverseUpDown(bool selected)
 	{
+		DataManager.Instance.UseReverseUpDown(selected);
+		ToggleClicked(upDownReverseImage, selected);
 	}
 
 	public void ValueChangedCenterLaneOrientation(bool selected)
 	{
+		DataManager.Instance.UseCenterLaneOrientation(selected);
+		ToggleClicked(centerLaneImage, selected);
 	}
 
 	public void ValueChangedVibration(bool selected)
 	{
+		DataManager.Instance.UseVibration(selected);
+		ToggleClicked(vibrationImage, selected);
 	}
 
 	public void ValueChangedVoiceOver(bool selected)
 	{
+		ToggleClicked(voiceOverImage, selected);
+		// PORT: CustomAnalyticsTracker.SettingsChanged removido.
 	}
 
 	public void LeftRightReverseInfoClicked()
 	{
+		ShowInfoPanel(LocalizationManager.Instance.GetLocalizedValue("info_left_right_reverse"));
 	}
 
 	public void UpDownReverseInfoClicked()
 	{
+		ShowInfoPanel(LocalizationManager.Instance.GetLocalizedValue("info_up_down_reverse"));
 	}
 
 	public void CenterLaneOrientationInfoClicked()
 	{
+		ShowInfoPanel(LocalizationManager.Instance.GetLocalizedValue("info_center_lane"));
 	}
 
 	public void VoiceOverInfoClicked()
 	{
+		ShowInfoPanel(LocalizationManager.Instance.GetLocalizedValue("info_voice_over"));
 	}
 
 	protected void ShowInfoPanel(string text)
 	{
+		infoDescription.text = text;
+		infoPanel.SetActive(true);
 	}
 
 	public void InfoPanelOKClicked()
 	{
+		infoPanel.SetActive(false);
 	}
 
 	public void RePlayTutorial()
 	{
+		// PORT: CustomAnalyticsTracker.HelpOptionSelected removido.
+		CustomGameManager.Instance.SwitchState(GameStateName.PlayGame);
 	}
 
 	public void UserGuideBtnClicked()
@@ -244,37 +398,125 @@ public class GameStateMenuOptions : GameState
 
 	public void PowerUpSoundsBtnClicked()
 	{
+		powerUpSoundsPanel.SetActive(true);
 	}
 
 	public void PowerUpSoundsCloseBtnClicked()
 	{
+		if (m_powerUpPlaying != 0)
+		{
+			StopPlayingPowerUpSound();
+		}
+		powerUpSoundsPanel.SetActive(false);
+	}
+
+	private Button PowerUpButton(int powerUp)
+	{
+		switch (powerUp)
+		{
+		case 1:
+			return boostBtn;
+		case 2:
+			return shieldBtn;
+		case 3:
+			return lightDoublerBtn;
+		case 4:
+			return weaponBtn;
+		default:
+			return null;
+		}
+	}
+
+	private void StartPowerUpSound(int powerUp)
+	{
+		if (m_powerUpPlaying != 0)
+		{
+			StopPlayingPowerUpSound();
+		}
+		m_powerUpPlaying = powerUp;
+		StartCoroutine(PlayPowerUpSound());
 	}
 
 	public void PowerUpBoostPlay()
 	{
+		StartPowerUpSound(1);
 	}
 
 	public void PowerUpShieldPlay()
 	{
+		StartPowerUpSound(2);
 	}
 
 	public void PowerUpWeaponPlay()
 	{
+		StartPowerUpSound(4);
 	}
 
 	public void PowerUpLightDoublerPlay()
 	{
+		StartPowerUpSound(3);
 	}
 
 	protected void StopPlayingPowerUpSound()
 	{
+		StopAllCoroutines();
+		Button btn = PowerUpButton(m_powerUpPlaying);
+		if (btn != null)
+		{
+			btn.image.fillCenter = false;
+			btn.image.color = notSelectedColor;
+		}
+		powerUpAudioSource.Stop();
 	}
 
 	private IEnumerator PlayPowerUpSound()
 	{
-		return null;
+		GameObject selectedObject = boostBtn.gameObject;
+		switch (m_powerUpPlaying)
+		{
+		case 1:
+			powerUpAudioSource.clip = boostSound;
+			powerUpAudioSource.outputAudioMixerGroup = boostMixerOutput;
+			break;
+		case 2:
+			powerUpAudioSource.clip = shieldSound;
+			powerUpAudioSource.outputAudioMixerGroup = shieldMixerOutput;
+			break;
+		case 3:
+			powerUpAudioSource.clip = lightDoublerSound;
+			powerUpAudioSource.outputAudioMixerGroup = lightDoublerMixerOutput;
+			break;
+		case 4:
+			powerUpAudioSource.clip = weaponSound;
+			powerUpAudioSource.outputAudioMixerGroup = weaponMixerOutput;
+			break;
+		}
+		Button btn = PowerUpButton(m_powerUpPlaying);
+		if (btn != null)
+		{
+			btn.image.fillCenter = true;
+			btn.image.color = selectedColor;
+			selectedObject = btn.gameObject;
+		}
+		powerUpAudioSource.Play();
+		bool isStopped = false;
+		while (true)
+		{
+			if (UAP_AccessibilityManager.IsEnabled() && UAP_AccessibilityManager.GetCurrentFocusObject() != selectedObject)
+			{
+				isStopped = true;
+			}
+			yield return null;
+			if (isStopped)
+			{
+				break;
+			}
+		}
+		StopPlayingPowerUpSound();
 	}
 
+	// PORT: links externos (site, FAQ, suporte, redes sociais, avaliacao, compartilhamento) removidos
+	// por pedido do usuario (sem funcoes online). Os botoes continuam na tela, mas nao fazem nada.
 	public void FAQBtnClicked()
 	{
 	}
@@ -285,12 +527,12 @@ public class GameStateMenuOptions : GameState
 
 	public string GetSupportMail()
 	{
-		return null;
+		return "";
 	}
 
 	public static string MyEscapeURL(string url)
 	{
-		return null;
+		return UnityEngine.Networking.UnityWebRequest.EscapeURL(url).Replace("+", "%20");
 	}
 
 	public void OpenExternalURL(string url)
@@ -299,19 +541,23 @@ public class GameStateMenuOptions : GameState
 
 	protected IEnumerator AccessibleOpenURLNotification(string url)
 	{
-		return null;
+		yield break;
 	}
 
 	public void ResetGameBtnClicked()
 	{
+		confirmResetGamePanel.SetActive(true);
 	}
 
 	public void ConfirmResetYesClicked()
 	{
+		// PORT: CustomAnalyticsTracker.ResetGameClicked removido.
+		FeerSceneManager.Instance.ResetAllData();
 	}
 
 	public void ConfirmResetNoClicked()
 	{
+		confirmResetGamePanel.SetActive(false);
 	}
 
 	public void PromoCodeBtnClicked()
@@ -320,27 +566,74 @@ public class GameStateMenuOptions : GameState
 
 	public void BackBtnClicked()
 	{
+		StartCoroutine(SwitchState(GameStateName.Menu));
+	}
+
+	private void PanelBtnClicked(int panel, GameObject accessibleRoot)
+	{
+		if (m_currentPanel != panel)
+		{
+			StartCoroutine(SwitchPanel(panel));
+		}
+		else if (UAP_AccessibilityManager.IsEnabled())
+		{
+			UAP_AccessibilityManager.SelectElement(accessibleRoot, true);
+		}
 	}
 
 	public void SettingsBtnClicked()
 	{
+		PanelBtnClicked(0, accessibleSettingsPanelRoot);
 	}
 
 	public void HelpBtnClicked()
 	{
+		PanelBtnClicked(1, accessibleHelpPanelRoot);
 	}
 
 	public void ContactBtnClicked()
 	{
+		PanelBtnClicked(2, accessibleContactPanelRoot);
 	}
 
 	public void PrivacyBtnClicked()
 	{
+		PanelBtnClicked(3, accessiblePrivacyPanelRoot);
 	}
 
 	private IEnumerator SwitchPanel(int toPanel)
 	{
-		return null;
+		if (UAP_AccessibilityManager.IsEnabled())
+		{
+			UAP_AccessibilityManager.BlockInput(true, true);
+		}
+		GameObject current = PanelObject(m_currentPanel);
+		if (current != null)
+		{
+			current.GetComponent<Animation>().Play("SmallPanelSlideOut");
+		}
+		GameObject next = PanelObject(toPanel);
+		if (next != null)
+		{
+			next.SetActive(true);
+			PanelBtnText(toPanel).color = selectedColor;
+		}
+		Text currentText = PanelBtnText(m_currentPanel);
+		if (currentText != null)
+		{
+			currentText.color = Color.white;
+		}
+		yield return new WaitForSeconds(0.5f);
+		current = PanelObject(m_currentPanel);
+		if (current != null)
+		{
+			current.SetActive(false);
+		}
+		m_currentPanel = toPanel;
+		if (UAP_AccessibilityManager.IsEnabled())
+		{
+			UAP_AccessibilityManager.BlockInput(false, true);
+		}
 	}
 
 	public void FollowUsOnFacebookClicked()
@@ -373,15 +666,17 @@ public class GameStateMenuOptions : GameState
 
 	public void ShareAndroidCancelBtnClicked()
 	{
+		sharePopUpAndroid.SetActive(false);
 	}
 
 	public void ShareAndroidShareBtnClicked()
 	{
+		sharePopUpAndroid.SetActive(false);
 	}
 
 	private IEnumerator StartSharingAndroid(string selectedOption, string subject, string text, string sharePhotoPath)
 	{
-		return null;
+		yield break;
 	}
 
 	protected void OpenNativeShareDialog()
