@@ -9,7 +9,7 @@ using UnityEngine;
 // Joystick (Xbox/XInput e PlayStation DualShock 4/DualSense, detectado pelo nome):
 //   analogicos e direcional = setas;
 //   X/Cruz (A no Xbox) e botao do touchpad = Enter nos menus, Espaco (tocar/atirar) no jogo;
-//   Start/Options = pausa/retoma na corrida e no menu de pausa (como o Esc), Enter nos outros menus;
+//   Start/Options = pausa na corrida (como o Esc), Enter nos menus;
 //   Circulo (B no Xbox), Select/Back/Share = Esc (inclusive o gesto de pausa).
 // "No jogo" = o plugin de acessibilidade esta pausado (a corrida esta rodando sem menu).
 // Vibracao do controle: ver PortRumble.
@@ -168,15 +168,16 @@ public class PortInput : MonoBehaviour
 		}
 	}
 
-	private static bool IsRunningOrPaused()
+	// Corrida rodando (plugin de acessibilidade pausado); sem o plugin, usa o estado do jogo.
+	private static bool IsRunning()
 	{
-		if (UAP_AccessibilityManager.IsEnabled() && !UAP_AccessibilityManager.IsActive())
+		if (UAP_AccessibilityManager.IsEnabled())
 		{
-			return true;
+			return !UAP_AccessibilityManager.IsActive();
 		}
 		CustomGameManager cgm = CustomGameManager.Instance;
 		GameState top = (cgm != null) ? cgm.topState : null;
-		return top != null && (top.GetName() == GameStateName.Pause || (!UAP_AccessibilityManager.IsEnabled() && top.GetName() == GameStateName.PlayGame));
+		return top != null && top.GetName() == GameStateName.PlayGame;
 	}
 
 	private static bool AnyDown(KeyCode[] keys)
@@ -262,8 +263,8 @@ public class PortInput : MonoBehaviour
 		}
 		if (AnyDown(m_Sony ? c_SonySubmitButtons : c_XboxSubmitButtons))
 		{
-			// Start: pausa/retoma na corrida e no menu de pausa (como o Esc); Enter nos outros menus.
-			if (IsRunningOrPaused())
+			// Start: pausa na corrida (como o Esc); Enter nos menus, inclusive no de pausa.
+			if (IsRunning())
 			{
 				s_PauseToggle = true;
 			}
