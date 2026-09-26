@@ -21,8 +21,6 @@ public class GameStatePause : GameState
 
 	protected bool m_Init;
 
-	private int m_EnterFrame;
-
 	public override void Enter(GameState from)
 	{
 		if (!m_Init)
@@ -47,36 +45,10 @@ public class GameStatePause : GameState
 			UAP_AccessibilityManager.Say(m_ttsGamePaused);
 		}
 		CustomGameManager.Instance.PauseGame();
-		// PORT: no original o gesto de pausa nao retomava o jogo (so o botao Continuar).
-		// No PC, Esc/Start/Circulo retomam; com uma confirmacao aberta, cancelam a confirmacao.
-		m_EnterFrame = Time.frameCount;
-		UAP_AccessibilityManager.UnregisterOnPauseToggledCallback(PortOnPauseToggle);
-		UAP_AccessibilityManager.RegisterOnPauseToggledCallback(PortOnPauseToggle);
-	}
-
-	private void PortOnPauseToggle()
-	{
-		if (!gameObject.activeSelf || Time.frameCount == m_EnterFrame)
-		{
-			return;
-		}
-		if (confirmQuitPanel.activeSelf)
-		{
-			ConfirmQuitNoClicked();
-		}
-		else if (confirmRestartPanel.activeSelf)
-		{
-			ConfirmRestartNoClicked();
-		}
-		else
-		{
-			ResumeBtnClicked();
-		}
 	}
 
 	public override void Exit(GameState to)
 	{
-		UAP_AccessibilityManager.UnregisterOnPauseToggledCallback(PortOnPauseToggle);
 		missionSetPanel.Hide();
 		scoreCoinsPanel.Hide();
 		navPanel.SetActive(false);
