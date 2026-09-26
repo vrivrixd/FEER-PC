@@ -6,8 +6,13 @@ using UnityEngine;
 // Esc = gesto de pausa (toque duplo com dois dedos): pausa o jogo ou pula o tutorial.
 // Nos menus o plugin de acessibilidade usa as setas, Enter e Esc (padrao do UAP no Windows).
 //
-// Joystick: direcional ou analogico esquerdo = setas; A = Enter/tocar; B = Esc;
-// Start = gesto de pausa. Tambem funciona nos menus (vira as teclas do UAP).
+// Joystick (Xbox/XInput e PlayStation DualShock 4/DualSense, detectado pelo nome):
+//   analogicos e direcional = setas;
+//   X/Cruz (A no Xbox) e botao do touchpad = Enter nos menus, Espaco (tocar/atirar) no jogo;
+//   Start/Options = Enter;
+//   Circulo (B no Xbox), Select/Back/Share = Esc (inclusive o gesto de pausa).
+// "No jogo" = o plugin de acessibilidade esta pausado (a corrida esta rodando sem menu).
+// Vibracao do controle: ver PortRumble.
 //
 // Mouse: arrastar com o botao esquerdo = deslizar; clique sem arrastar = tocar.
 //
@@ -114,17 +119,84 @@ public class PortInput : MonoBehaviour
 		s_Cancel = false;
 		UpdateJoystick();
 		UpdateMouse();
-		if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.JoystickButton7))
+		// Esc do teclado ou do controle: gesto de pausa
+		if (Input.GetKeyDown(KeyCode.Escape) || s_Cancel)
 		{
 			UAP_AccessibilityManager.PortTriggerPauseToggle();
 		}
 	}
 
+	// Numeracao dos botoes no Unity (Input Manager antigo)
+	private static readonly KeyCode[] c_XboxGameButtons = { KeyCode.JoystickButton0 };            // A
+
+	private static readonly KeyCode[] c_XboxSubmitButtons = { KeyCode.JoystickButton7 };          // Start
+
+	private static readonly KeyCode[] c_XboxCancelButtons = { KeyCode.JoystickButton1, KeyCode.JoystickButton6 }; // B, Back
+
+	private static readonly KeyCode[] c_SonyGameButtons = { KeyCode.JoystickButton1, KeyCode.JoystickButton13 }; // Cruz, touchpad
+
+	private static readonly KeyCode[] c_SonySubmitButtons = { KeyCode.JoystickButton9 };          // Options
+
+	private static readonly KeyCode[] c_SonyCancelButtons = { KeyCode.JoystickButton2, KeyCode.JoystickButton8 }; // Circulo, Share/Create
+
+	private bool m_Sony;
+
+	private float m_NextNameCheck;
+
+	// DualShock 4 e DualSense sem emulador aparecem como "Wireless Controller" (DirectInput);
+	// qualquer outro controle usa o layout do Xbox (XInput), inclusive DS4Windows/Steam.
+	private void DetectControllerType()
+	{
+		if (Time.unscaledTime < m_NextNameCheck)
+		{
+			return;
+		}
+		m_NextNameCheck = Time.unscaledTime + 2f;
+		m_Sony = false;
+		foreach (string name in Input.GetJoystickNames())
+		{
+			if (string.IsNullOrEmpty(name))
+			{
+				continue;
+			}
+			string n = name.ToLowerInvariant();
+			m_Sony = !n.Contains("xbox") && !n.Contains("xinput") && (n.Contains("wireless controller") || n.Contains("dualsense") || n.Contains("dualshock") || n.Contains("sony") || n.Contains("playstation"));
+			break;
+		}
+	}
+
+	private static bool AnyDown(KeyCode[] keys)
+	{
+		foreach (KeyCode k in keys)
+		{
+			if (Input.GetKeyDown(k))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static Vector2 Strongest(Vector2 a, Vector2 b)
+	{
+		return (b.sqrMagnitude > a.sqrMagnitude) ? b : a;
+	}
+
 	private void UpdateJoystick()
 	{
-		Vector2 stick = new Vector2(ReadAxis("PortJoyX"), ReadAxis("PortJoyY"));
-		Vector2 dpad = new Vector2(ReadAxis("PortDpadX"), ReadAxis("PortDpadY"));
-		Vector2 value = (dpad.sqrMagnitude > stick.sqrMagnitude) ? dpad : stick;
+		DetectControllerType();
+		// Unity: Y dos analogicos e positivo para baixo (PortJoyY ja vem invertido); Y do direcional e positivo para cima.
+		Vector2 value = new Vector2(ReadAxis("PortJoyX"), ReadAxis("PortJoyY"));
+		if (m_Sony)
+		{
+			value = Strongest(value, new Vector2(ReadAxis("PortAxis2"), -ReadAxis("PortAxis5")));
+			value = Strongest(value, new Vector2(ReadAxis("PortAxis6"), ReadAxis("PortAxis7")));
+		}
+		else
+		{
+			value = Strongest(value, new Vector2(ReadAxis("PortAxis3"), -ReadAxis("PortAxis4")));
+			value = Strongest(value, new Vector2(ReadAxis("PortAxis5"), ReadAxis("PortAxis6")));
+		}
 		// Gera um "toque" de tecla so quando a direcao passa do limite (sem repetir enquanto segurado)
 		if (Mathf.Abs(m_StickLast.x) < c_StickRelease && Mathf.Abs(m_StickLast.y) < c_StickRelease)
 		{
@@ -156,12 +228,29 @@ public class PortInput : MonoBehaviour
 		{
 			m_StickLast = Vector2.zero;
 		}
-		if (Input.GetKeyDown(KeyCode.JoystickButton0))
+		if (AnyDown(m_Sony ? c_SonyGameButtons : c_XboxGameButtons))
+		{
+			// Com o plugin de acessibilidade pausado a corrida esta rodando: vira Espaco; senao, Enter.
+			// Sem o plugin ligado nao ha como distinguir: faz os dois (como o clique do mouse).
+			if (!UAP_AccessibilityManager.IsEnabled())
+			{
+				GameTap = true;
+				s_Submit = true;
+			}
+			else if (!UAP_AccessibilityManager.IsActive())
+			{
+				GameTap = true;
+			}
+			else
+			{
+				s_Submit = true;
+			}
+		}
+		if (AnyDown(m_Sony ? c_SonySubmitButtons : c_XboxSubmitButtons))
 		{
 			s_Submit = true;
-			GameTap = true;
 		}
-		if (Input.GetKeyDown(KeyCode.JoystickButton1))
+		if (AnyDown(m_Sony ? c_SonyCancelButtons : c_XboxCancelButtons))
 		{
 			s_Cancel = true;
 		}

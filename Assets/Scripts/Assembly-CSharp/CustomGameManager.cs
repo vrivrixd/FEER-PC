@@ -766,6 +766,11 @@ public class CustomGameManager : MonoBehaviour
 
 	private void PlayerKilled()
 	{
+		// PORT: vibra o controle quando o personagem morre (qualquer causa), respeitando a opcao de vibracao.
+		if (DataManager.Instance.playerData.useVibration)
+		{
+			PortRumble.Death();
+		}
 		if (m_Tutorial)
 		{
 			topState.ReceiveInfoMessage(InfoMessage.TutorialIsDead, null);
