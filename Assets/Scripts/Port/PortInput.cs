@@ -7,11 +7,11 @@ using UnityEngine;
 // Nos menus o plugin de acessibilidade usa as setas, Enter e Esc (padrao do UAP no Windows).
 //
 // Joystick (Xbox/XInput e PlayStation DualShock 4/DualSense, detectado pelo nome):
-//   analogicos e direcional = setas;
-//   X/Cruz (A no Xbox) e botao do touchpad = Enter nos menus, Espaco (tocar/atirar) no jogo;
-//   Start/Options = pausa na corrida (como o Esc), Enter nos menus;
-//   Circulo (B no Xbox), Select/Back/Share = Esc (inclusive o gesto de pausa).
-// "No jogo" = o plugin de acessibilidade esta pausado (a corrida esta rodando sem menu).
+//   analogicos e direcional = setas (menus e corrida);
+//   Na corrida: Cruz (A) pula, Circulo (B) agacha, Triangulo/Quadrado/touchpad (X/Y) atiram,
+//     L1/L2 (LB/LT) = faixa esquerda, R1/R2 (RB/RT) = faixa direita, Options/Share (Start/Back) pausam.
+//   Nos menus: Cruz/Options/touchpad (A/Start) = Enter; Circulo/Share (B/Back) = Esc.
+// "Na corrida" = o plugin de acessibilidade esta pausado (a corrida esta rodando sem menu).
 // Vibracao do controle: ver PortRumble.
 //
 // Mouse: arrastar com o botao esquerdo = deslizar; clique sem arrastar = tocar.
@@ -130,17 +130,57 @@ public class PortInput : MonoBehaviour
 	}
 
 	// Numeracao dos botoes no Unity (Input Manager antigo)
-	private static readonly KeyCode[] c_XboxGameButtons = { KeyCode.JoystickButton0 };            // A
+	// Numeracao dos botoes no Unity (Input Manager antigo).
+	// Xbox: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 Back, 7 Start (LT/RT sao eixos 9 e 10).
+	// PlayStation: 0 Quadrado, 1 Cruz, 2 Circulo, 3 Triangulo, 4 L1, 5 R1, 6 L2, 7 R2, 8 Share, 9 Options, 13 Touchpad.
+	private class Layout
+	{
+		public KeyCode[] Jump;      // corrida: pular (= direcional para cima)
 
-	private static readonly KeyCode[] c_XboxSubmitButtons = { KeyCode.JoystickButton7 };          // Start
+		public KeyCode[] Slide;     // corrida: agachar (= direcional para baixo)
 
-	private static readonly KeyCode[] c_XboxCancelButtons = { KeyCode.JoystickButton1, KeyCode.JoystickButton6 }; // B, Back
+		public KeyCode[] Shoot;     // corrida: atirar (= Espaco)
 
-	private static readonly KeyCode[] c_SonyGameButtons = { KeyCode.JoystickButton1, KeyCode.JoystickButton13 }; // Cruz, touchpad
+		public KeyCode[] Left;      // corrida: faixa da esquerda
 
-	private static readonly KeyCode[] c_SonySubmitButtons = { KeyCode.JoystickButton9 };          // Options
+		public KeyCode[] Right;     // corrida: faixa da direita
 
-	private static readonly KeyCode[] c_SonyCancelButtons = { KeyCode.JoystickButton2, KeyCode.JoystickButton8 }; // Circulo, Share/Create
+		public KeyCode[] Pause;     // corrida: pausa (= Esc)
+
+		public KeyCode[] Submit;    // menus: Enter
+
+		public KeyCode[] Cancel;    // menus: Esc
+	}
+
+	private static readonly Layout c_Xbox = new Layout
+	{
+		Jump = new[] { KeyCode.JoystickButton0 },
+		Slide = new[] { KeyCode.JoystickButton1 },
+		Shoot = new[] { KeyCode.JoystickButton2, KeyCode.JoystickButton3 },
+		Left = new[] { KeyCode.JoystickButton4 },
+		Right = new[] { KeyCode.JoystickButton5 },
+		Pause = new[] { KeyCode.JoystickButton6, KeyCode.JoystickButton7 },
+		Submit = new[] { KeyCode.JoystickButton0, KeyCode.JoystickButton7 },
+		Cancel = new[] { KeyCode.JoystickButton1, KeyCode.JoystickButton6 }
+	};
+
+	private static readonly Layout c_Sony = new Layout
+	{
+		Jump = new[] { KeyCode.JoystickButton1 },
+		Slide = new[] { KeyCode.JoystickButton2 },
+		Shoot = new[] { KeyCode.JoystickButton0, KeyCode.JoystickButton3, KeyCode.JoystickButton13 },
+		Left = new[] { KeyCode.JoystickButton4, KeyCode.JoystickButton6 },
+		Right = new[] { KeyCode.JoystickButton5, KeyCode.JoystickButton7 },
+		Pause = new[] { KeyCode.JoystickButton8, KeyCode.JoystickButton9 },
+		Submit = new[] { KeyCode.JoystickButton1, KeyCode.JoystickButton9, KeyCode.JoystickButton13 },
+		Cancel = new[] { KeyCode.JoystickButton2, KeyCode.JoystickButton8 }
+	};
+
+	private bool m_LeftTriggerDown;
+
+	private bool m_RightTriggerDown;
+
+	private string m_LastJoystickName;
 
 	private bool m_Sony;
 
@@ -161,6 +201,11 @@ public class PortInput : MonoBehaviour
 			if (string.IsNullOrEmpty(name))
 			{
 				continue;
+			}
+			if (name != m_LastJoystickName)
+			{
+				m_LastJoystickName = name;
+				Debug.Log("[PortInput] Controle: " + name);
 			}
 			string n = name.ToLowerInvariant();
 			m_Sony = !n.Contains("xbox") && !n.Contains("xinput") && (n.Contains("wireless controller") || n.Contains("dualsense") || n.Contains("dualshock") || n.Contains("sony") || n.Contains("playstation"));
@@ -243,39 +288,57 @@ public class PortInput : MonoBehaviour
 		{
 			m_StickLast = Vector2.zero;
 		}
-		if (AnyDown(m_Sony ? c_SonyGameButtons : c_XboxGameButtons))
+		Layout layout = m_Sony ? c_Sony : c_Xbox;
+		// Gatilhos do Xbox sao eixos: gera um toque quando passam da metade
+		bool leftTrigger = false;
+		bool rightTrigger = false;
+		if (!m_Sony)
 		{
-			// Com o plugin de acessibilidade pausado a corrida esta rodando: vira Espaco; senao, Enter.
-			// Sem o plugin ligado nao ha como distinguir: faz os dois (como o clique do mouse).
-			if (!UAP_AccessibilityManager.IsEnabled())
-			{
-				GameTap = true;
-				s_Submit = true;
-			}
-			else if (!UAP_AccessibilityManager.IsActive())
-			{
-				GameTap = true;
-			}
-			else
-			{
-				s_Submit = true;
-			}
+			bool lt = ReadAxis("PortAxis8") > 0.5f;
+			bool rt = ReadAxis("PortAxis9") > 0.5f;
+			leftTrigger = lt && !m_LeftTriggerDown;
+			rightTrigger = rt && !m_RightTriggerDown;
+			m_LeftTriggerDown = lt;
+			m_RightTriggerDown = rt;
 		}
-		if (AnyDown(m_Sony ? c_SonySubmitButtons : c_XboxSubmitButtons))
+		if (IsRunning())
 		{
-			// Start: pausa na corrida (como o Esc); Enter nos menus, inclusive no de pausa.
-			if (IsRunning())
+			// Corrida: botoes viram os gestos do jogo; o direcional continua valendo (acima).
+			if (AnyDown(layout.Jump))
+			{
+				GameSwipeUp = true;
+			}
+			if (AnyDown(layout.Slide))
+			{
+				GameSwipeDown = true;
+			}
+			if (AnyDown(layout.Left) || leftTrigger)
+			{
+				GameSwipeLeft = true;
+			}
+			if (AnyDown(layout.Right) || rightTrigger)
+			{
+				GameSwipeRight = true;
+			}
+			if (AnyDown(layout.Shoot))
+			{
+				GameTap = true;
+			}
+			if (AnyDown(layout.Pause))
 			{
 				s_PauseToggle = true;
 			}
-			else
+		}
+		else
+		{
+			if (AnyDown(layout.Submit))
 			{
 				s_Submit = true;
 			}
-		}
-		if (AnyDown(m_Sony ? c_SonyCancelButtons : c_XboxCancelButtons))
-		{
-			s_Cancel = true;
+			if (AnyDown(layout.Cancel))
+			{
+				s_Cancel = true;
+			}
 		}
 	}
 

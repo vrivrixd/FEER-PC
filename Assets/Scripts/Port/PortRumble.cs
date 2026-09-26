@@ -31,6 +31,21 @@ public class PortRumble : MonoBehaviour
 		s_Instance = go.AddComponent<PortRumble>();
 	}
 
+	// Teste: Feer.exe -porttestrumble vibra 3 segundos depois de abrir
+	private void Start()
+	{
+		if (Array.IndexOf(Environment.GetCommandLineArgs(), "-porttestrumble") >= 0)
+		{
+			Invoke("TestRumble", 3f);
+		}
+	}
+
+	private void TestRumble()
+	{
+		Debug.Log("[PortRumble] teste");
+		Death();
+	}
+
 	// Vibra os controles conectados. strong = motor grande, weak = motor pequeno (0..1).
 	public static void Rumble(float strong, float weak, float seconds)
 	{
@@ -164,21 +179,12 @@ public class PortRumble : MonoBehaviour
 	{
 		public SafeFileHandle Handle;
 
-		public FileStream Stream;
-
 		public SonyKind Kind;
 
 		public int ReportLength;
 
 		public void Dispose()
 		{
-			try
-			{
-				Stream?.Dispose();
-			}
-			catch
-			{
-			}
 			try
 			{
 				Handle?.Dispose();
@@ -210,11 +216,16 @@ public class PortRumble : MonoBehaviour
 			try
 			{
 				byte[] report = BuildReport(pad, big, small);
-				pad.Stream.Write(report, 0, report.Length);
-				pad.Stream.Flush();
+				// PORT: FileStream do Mono recusa handles de HID ("Invalid handle"); grava direto.
+				uint written;
+				if (!WriteFile(pad.Handle, report, (uint)report.Length, out written, IntPtr.Zero))
+				{
+					throw new IOException("WriteFile falhou: " + Marshal.GetLastWin32Error());
+				}
 			}
-			catch (Exception)
+			catch (Exception e)
 			{
+				Debug.Log("[PortRumble] " + pad.Kind + ": " + e.Message);
 				// Desconectado: tenta achar de novo na proxima vibracao
 				pad.Dispose();
 				m_SonyPads.RemoveAt(i);
@@ -412,6 +423,7 @@ public class PortRumble : MonoBehaviour
 			return null;
 		}
 		bool isDs4 = Array.IndexOf(c_DS4Products, a.ProductID) >= 0;
+		Debug.Log("[PortRumble] HID aberto: " + a.ProductID.ToString("X4") + " saida " + outputLength);
 		SonyPad pad = new SonyPad();
 		pad.Handle = handle;
 		pad.ReportLength = outputLength;
@@ -424,7 +436,6 @@ public class PortRumble : MonoBehaviour
 		{
 			pad.Kind = (outputLength <= 64) ? SonyKind.DualSenseUsb : SonyKind.DualSenseBluetooth;
 		}
-		pad.Stream = new FileStream(handle, FileAccess.Write, 1, false);
 		Debug.Log("[PortRumble] Controle PlayStation encontrado: " + pad.Kind + " (relatorio " + outputLength + ")");
 		return pad;
 	}
@@ -532,6 +543,9 @@ public class PortRumble : MonoBehaviour
 
 	[DllImport("setupapi.dll")]
 	private static extern bool SetupDiDestroyDeviceInfoList(IntPtr set);
+
+	[DllImport("kernel32.dll", SetLastError = true)]
+	private static extern bool WriteFile(SafeFileHandle file, byte[] buffer, uint count, out uint written, IntPtr overlapped);
 
 	[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
 	private static extern SafeFileHandle CreateFile(string name, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);
