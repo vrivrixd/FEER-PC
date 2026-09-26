@@ -36,6 +36,8 @@ public class WindowsTTS : MonoBehaviour
 	private static bool m_UseNVDA = false;
 	private static float m_NVDAIsSpeakingTimer = -1.0f;
 
+	private const float c_NVDACharsPerSecond = 20.0f;
+
 	//////////////////////////////////////////////////////////////////////////
 
 	void Awake()
@@ -84,7 +86,9 @@ public class WindowsTTS : MonoBehaviour
 		if (m_UseNVDA)
 		{
 			nvdaController_speakText(msg);
-			m_NVDAIsSpeakingTimer += (msg.Length / 16.0f);
+			// PORT: o NVDA nao informa quando termina de falar; a duracao e estimada pelo tamanho do texto.
+			// Original do plugin: 16 caracteres por segundo. Ajustado para 20 (pausas ~20% menores).
+			m_NVDAIsSpeakingTimer += (msg.Length / c_NVDACharsPerSecond);
 		}
 		else
 		{
