@@ -66,7 +66,7 @@ public class PlayerInputController : MonoBehaviour
 
 	protected bool m_Tutorial;
 
-	protected int m_TutotalState;
+	protected internal int m_TutotalState;
 
 	protected const int c_TUTORIAL_NO_INPUT = 0;
 

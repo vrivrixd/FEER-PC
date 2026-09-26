@@ -484,7 +484,7 @@ public class TrackManager : MonoBehaviour
 		CustomGameManager.Instance.topState.ReceiveInfoMessage(InfoMessage.TutorialStoppedRunning, null);
 	}
 
-	protected void PlaceElement(float inDistance, int laneToUse, int type)
+	protected internal void PlaceElement(float inDistance, int laneToUse, int type)
 	{
 		for (int i = 0; i < m_TrackParts.Count; i++)
 		{
