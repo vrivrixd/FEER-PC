@@ -58,11 +58,11 @@ public class PlayerInputController : MonoBehaviour
 
 	protected Vector2 m_StartingTouch;
 
-	protected bool m_IsSwiping;
+	protected internal bool m_IsSwiping;
 
 	protected bool m_UserControl;
 
-	protected bool m_IsPlaying;
+	protected internal bool m_IsPlaying;
 
 	protected bool m_Tutorial;
 
@@ -210,7 +210,7 @@ public class PlayerInputController : MonoBehaviour
 		PauseAllAudio(true);
 	}
 
-	protected void PauseAllAudio(bool paused)
+	protected internal void PauseAllAudio(bool paused)
 	{
 		if (paused)
 		{
