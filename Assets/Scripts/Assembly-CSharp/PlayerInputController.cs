@@ -16,15 +16,15 @@ public class PlayerInputController : MonoBehaviour
 
 	public AudioSource audioSlide;
 
-	public float slideLength;
+	public float slideLength = 7f;
 
 	public AudioSource audioJumpStart;
 
 	public AudioSource audioJumpEnd;
 
-	public float jumpLength;
+	public float jumpLength = 7f;
 
-	public float jumpHeight;
+	public float jumpHeight = 1.2f;
 
 	public AudioSource audioRun;
 
@@ -34,9 +34,9 @@ public class PlayerInputController : MonoBehaviour
 
 	public AudioSource audioChangeLane;
 
-	public float laneWidth;
+	public float laneWidth = 1f;
 
-	public float laneChangeSpeed;
+	public float laneChangeSpeed = 4f;
 
 	public AudioSource stumbleAudio;
 
@@ -48,7 +48,7 @@ public class PlayerInputController : MonoBehaviour
 
 	public AudioSource powerUpWeaponSound;
 
-	protected int m_CurrentLane;
+	protected int m_CurrentLane = 1;
 
 	protected Vector3 m_TargetPosition;
 
@@ -60,7 +60,7 @@ public class PlayerInputController : MonoBehaviour
 
 	protected internal bool m_IsSwiping;
 
-	protected bool m_UserControl;
+	protected bool m_UserControl = true;
 
 	protected internal bool m_IsPlaying;
 
@@ -84,9 +84,9 @@ public class PlayerInputController : MonoBehaviour
 
 	protected bool m_IsSpecialFootstepSound;
 
-	protected float m_AudioRunPitch;
+	protected float m_AudioRunPitch = 0.867f;
 
-	protected float m_AudioHeartbeatPitch;
+	protected float m_AudioHeartbeatPitch = 0.85f;
 
 	protected float m_PanValue;
 

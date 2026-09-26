@@ -38,9 +38,9 @@ public class MissionPanelUI : MonoBehaviour
 
 	protected UAP_BaseElement accessibleRewardText;
 
-	protected UAP_BaseElement[] accessibleMissionText;
+	protected UAP_BaseElement[] accessibleMissionText = new UAP_BaseElement[3];
 
-	protected UAP_BaseElement[] accessibleButtonText;
+	protected UAP_BaseElement[] accessibleButtonText = new UAP_BaseElement[3];
 
 	protected string m_strMissionLevel;
 
@@ -82,7 +82,7 @@ public class MissionPanelUI : MonoBehaviour
 
 	protected string m_ttsLevelUpLightReward;
 
-	protected bool m_GameOver;
+	protected bool m_GameOver = true;
 
 	protected bool m_LevelUp;
 

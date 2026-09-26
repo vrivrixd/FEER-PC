@@ -90,13 +90,13 @@ public class GameStateGameOver : GameState
 
 	protected bool m_SharePopUpAndroidPopulated;
 
-	protected bool m_WaitForServer;
+	protected bool m_WaitForServer = true;
 
 	protected bool m_IsNewHighscore;
 
-	protected int m_SelectedLeaderBoardPanel;
+	protected int m_SelectedLeaderBoardPanel = -1;
 
-	protected int m_UserRank;
+	protected int m_UserRank = -1;
 
 	protected const int c_USERNAME_PANEL = 0;
 
@@ -168,11 +168,11 @@ public class GameStateGameOver : GameState
 
 	protected bool m_PlayerRegistered;
 
-	protected int m_PlayerGlobalRank;
+	protected int m_PlayerGlobalRank = -1;
 
-	protected int m_PlayerFriendsRank;
+	protected int m_PlayerFriendsRank = -1;
 
-	protected int m_MinLeaderboardScore;
+	protected int m_MinLeaderboardScore = -1;
 
 	private static CustomGameManager CGM => CustomGameManager.Instance;
 

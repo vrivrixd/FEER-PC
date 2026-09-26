@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class CustomAnalyticsTracker : MonoBehaviour
 {
-	protected long m_sessionId;
+	protected long m_sessionId = -1;
 
 	protected DateTime m_CurrentGameStartTime;
 

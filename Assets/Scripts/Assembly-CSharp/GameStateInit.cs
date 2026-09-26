@@ -18,7 +18,7 @@ public class GameStateInit : GameState
 
 	protected const int c_ROUTINE_CHANGE_THEME_TUTORIAL = 8;
 
-	protected int m_CurrentInitRoutine;
+	protected int m_CurrentInitRoutine = -1;
 
 	protected const int c_INIT_THEME = 1;
 
