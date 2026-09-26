@@ -4792,15 +4792,12 @@ public class UAP_AccessibilityManager : MonoBehaviour
 	/// </summary>
 	/// <param name="key"></param>
 	/// <returns></returns>
+	// FEER: a versao do jogo usa o LocalizationManager do proprio jogo
 	static public string Localize(string key)
 	{
-#if ACCESS_NGUI
-		if (key.Length > 0 && Localization.Has(key))
-			return Localization.Get(key);
-#endif
-
-		// Try internal localization next
-		return Localize_Internal(key);
+		if (key.Length > 0)
+			key = LocalizationManager.Instance.GetLocalizedValue(key);
+		return key;
 	}
 
 	/// <summary>
@@ -4810,13 +4807,16 @@ public class UAP_AccessibilityManager : MonoBehaviour
 	/// <returns></returns>
 	static public string Localize_Internal(string key)
 	{
+		// FEER: a versao do jogo consulta primeiro o LocalizationManager do jogo
+		if (LocalizationManager.Instance != null)
+			return LocalizationManager.Instance.GetLocalizedValue(key);
+
 		if (m_CurrentLocalizationTable == null)
 			return key;
 
 		if (m_CurrentLocalizationTable.ContainsKey(key))
 			return m_CurrentLocalizationTable[key];
 
-		Debug.LogWarning("[Accessibility] No localization available for key '" + key + "'");
 		return key;
 	}
 
