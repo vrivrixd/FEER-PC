@@ -12,7 +12,7 @@ using UnityEngine;
 //   During the run: Cross (A) jumps, Circle (B) slides, Triangle/Square/touchpad (X/Y) shoot,
 //     L1/L2 (LB/LT) = left lane, R1/R2 (RB/RT) = right lane, Options/Share (Start/Back) pause.
 //   In menus: Cross/Options/touchpad (A/Start) = Enter; Circle/Share (B/Back) = Esc.
-//   In the pause menu: Options/Share (Start/Back) resume the game, like Esc.
+//   In the pause menu and the tutorial skip confirmation: Options/Share (Start/Back) resume, like Esc.
 //   During the run: L3 says the score, R3 says the lights (keyboard: S and L). See PortStatus.
 // "During the run" = PlayGame state with the accessibility plugin paused (no menu shown).
 // PlayStation gamepads are read directly through HID when possible (PortSonyInput): this also
@@ -119,7 +119,12 @@ public class PortInput : MonoBehaviour
 	{
 		CustomGameManager cgm = CustomGameManager.Instance;
 		GameState top = (cgm != null) ? cgm.topState : null;
-		return top != null && top.GetName() == GameStateName.Pause;
+		if (top == null)
+		{
+			return false;
+		}
+		// The tutorial's skip confirmation is its pause menu: Start/Options resume the tutorial, like Esc
+		return top.GetName() == GameStateName.Pause || (top.GetName() == GameStateName.PlayGame && top.GetStatus() == GameStateStatus.TutorialPaused);
 	}
 
 	private static bool TryBack()
@@ -433,7 +438,7 @@ public class PortInput : MonoBehaviour
 		}
 		else if (IsPauseMenu() && AnyDown(layout.Pause))
 		{
-			// Pause menu: Start/Options (and Share/Back) resume the game, like Esc
+			// Pause menu or tutorial skip confirmation: Start/Options (and Share/Back) resume, like Esc
 			s_Cancel = true;
 		}
 		else
