@@ -53,7 +53,7 @@ public class TutorialFactory : ThemeTutorial
 		}
 		else
 		{
-			// passos com morte possivel: 8,10,11,16,17,21,22
+			// steps where the player can die: 8,10,11,16,17,21,22
 			if (step < 0 || step > 22 || ((1 << step) & ((step < 12) ? 0xD00 : 0x630000)) == 0)
 			{
 				return;
@@ -90,7 +90,7 @@ public class TutorialFactory : ThemeTutorial
 		CGM.trackManager.TutorialResumeRunning();
 	}
 
-	// pista (0 esquerda, 1 centro, 2 direita) -> posicao de spawn relativa (-1, 0, 1)
+	// lane (0 left, 1 center, 2 right) -> relative spawn position (-1, 0, 1)
 	private static int LaneToSpawn(int lane)
 	{
 		return lane - 1;
@@ -112,7 +112,7 @@ public class TutorialFactory : ThemeTutorial
 			break;
 		case 2:
 		{
-			// fada na pista oposta/adjacente: direita->centro, centro->esquerda, esquerda->direita
+			// fairy in the opposite/adjacent lane: right->center, center->left, left->right
 			int lane = CGM.currentLane;
 			int spawn;
 			if (lane == 2)
@@ -227,7 +227,7 @@ public class TutorialFactory : ThemeTutorial
 			Say(11, 0.5f, 0.5f);
 			break;
 		case 25:
-			// PORT: CustomAnalyticsTracker.TutorialComplete removido.
+			// PORT: CustomAnalyticsTracker.TutorialComplete removed.
 			m_ParentGameState.TutorialEnd();
 			break;
 		}
@@ -270,7 +270,7 @@ public class TutorialFactory : ThemeTutorial
 		m_CurrentRepeatTime = times;
 		if (step == 4)
 		{
-			// fada perdida: nova fada em outra pista
+			// fairy missed: new fairy in another lane
 			StopAllCoroutines();
 			StartCoroutine(ListenForGhostCollected());
 			int r = Random.Range(0, 2);

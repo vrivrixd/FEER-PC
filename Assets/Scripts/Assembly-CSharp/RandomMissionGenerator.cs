@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class RandomMissionGenerator
 {
-	// Tabelas de metas do original (arrays estaticos em <PrivateImplementationDetails>, extraidos do global-metadata)
+	// Goal tables from the original (static arrays in <PrivateImplementationDetails>, extracted from global-metadata)
 	private static float[] Seq(float start, float step, int count)
 	{
 		float[] array = new float[count];

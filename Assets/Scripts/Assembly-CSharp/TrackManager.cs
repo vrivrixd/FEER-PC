@@ -397,7 +397,7 @@ public class TrackManager : MonoBehaviour
 		}
 	}
 
-	// PORT: evita pausar duas vezes (a segunda guardaria m_IsRunning = false e a pista nao voltaria)
+	// PORT: prevents pausing twice (the second pause would store m_IsRunning = false and the track would never resume)
 	private bool m_PortTutorialPaused;
 
 	public void TutorialPaused(bool paused)

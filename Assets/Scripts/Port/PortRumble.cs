@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using UnityEngine;
 
-// PORT: vibracao do controle no PC (o original usava Handheld.Vibrate no celular).
+// PORT: gamepad rumble on PC (the original used Handheld.Vibrate on the phone).
 //
-// - Controles XInput (Xbox, ou PlayStation via DS4Windows/Steam): XInputSetState.
-// - DualShock 4 e DualSense ligados direto (USB ou Bluetooth): relatorio de saida HID.
+// - XInput gamepads (Xbox, or PlayStation through DS4Windows/Steam): XInputSetState.
+// - DualShock 4 and DualSense connected directly (USB or Bluetooth): HID output report.
 //
-// Tudo e best effort: se o controle nao existir ou estiver em uso exclusivo, nada acontece.
+// Everything is best effort: if the gamepad is missing or in exclusive use, nothing happens.
 public class PortRumble : MonoBehaviour
 {
 	private static PortRumble s_Instance;
@@ -31,7 +31,7 @@ public class PortRumble : MonoBehaviour
 		s_Instance = go.AddComponent<PortRumble>();
 	}
 
-	// Vibra os controles conectados. strong = motor grande, weak = motor pequeno (0..1).
+	// Rumbles the connected gamepads. strong = large motor, weak = small motor (0..1).
 	public static void Rumble(float strong, float weak, float seconds)
 	{
 		if (s_Instance != null)
@@ -40,13 +40,13 @@ public class PortRumble : MonoBehaviour
 		}
 	}
 
-	// Vibracao quando o personagem morre
+	// Rumble when the player dies
 	public static void Death()
 	{
 		Rumble(1f, 1f, 0.8f);
 	}
 
-	// Vibracao quando o personagem tropeca (substitui Handheld.Vibrate do original)
+	// Rumble when the player stumbles (replaces the original Handheld.Vibrate)
 	public static void Stumble()
 	{
 		Rumble(0.6f, 0.4f, 0.25f);
@@ -201,17 +201,17 @@ public class PortRumble : MonoBehaviour
 			try
 			{
 				byte[] report = BuildReport(pad, big, small);
-				// PORT: FileStream do Mono recusa handles de HID ("Invalid handle"); grava direto.
+				// PORT: Mono's FileStream rejects HID handles ("Invalid handle"); write directly.
 				uint written;
 				if (!WriteFile(pad.Handle, report, (uint)report.Length, out written, IntPtr.Zero))
 				{
-					throw new IOException("WriteFile falhou: " + Marshal.GetLastWin32Error());
+					throw new IOException("WriteFile failed: " + Marshal.GetLastWin32Error());
 				}
 			}
 			catch (Exception e)
 			{
 				Debug.Log("[PortRumble] " + pad.Kind + ": " + e.Message);
-				// Desconectado: tenta achar de novo na proxima vibracao
+				// Disconnected: try to find it again on the next rumble
 				pad.Dispose();
 				m_SonyPads.RemoveAt(i);
 				m_NextSonyScan = 0f;
@@ -226,7 +226,7 @@ public class PortRumble : MonoBehaviour
 		{
 		case SonyKind.DS4Usb:
 			r[0] = 0x05;
-			r[1] = 0x01; // so o motor (nao mexe na luz)
+			r[1] = 0x01; // motor only (leaves the light bar alone)
 			r[4] = small;
 			r[5] = big;
 			break;
@@ -241,12 +241,12 @@ public class PortRumble : MonoBehaviour
 			break;
 		case SonyKind.DualSenseUsb:
 			r[0] = 0x02;
-			r[1] = 0x03; // vibracao compativel + selecao de haptico
+			r[1] = 0x03; // compatible vibration + haptics select
 			r[3] = small;
 			r[4] = big;
 			if (r.Length > 39)
 			{
-				r[39] = 0x04; // vibracao compativel v2 (firmwares novos)
+				r[39] = 0x04; // compatible vibration v2 (newer firmware)
 			}
 			break;
 		case SonyKind.DualSenseBluetooth:
@@ -273,7 +273,7 @@ public class PortRumble : MonoBehaviour
 		}
 	}
 
-	// CRC32 dos relatorios Bluetooth: semente 0xA2 seguida dos bytes do relatorio
+	// CRC32 of Bluetooth reports: seed 0xA2 followed by the report bytes
 	private static void WriteCrc(byte[] r, int crcOffset)
 	{
 		uint crc = 0xFFFFFFFFu;
@@ -299,7 +299,7 @@ public class PortRumble : MonoBehaviour
 		return crc;
 	}
 
-	// Caminhos dos DualShock 4 / DualSense conectados (true = DualSense)
+	// Paths of the connected DualShock 4 / DualSense gamepads (true = DualSense)
 	internal static List<KeyValuePair<string, bool>> FindSonyPads()
 	{
 		List<KeyValuePair<string, bool>> result = new List<KeyValuePair<string, bool>>();
@@ -379,7 +379,7 @@ public class PortRumble : MonoBehaviour
 		IntPtr buffer = Marshal.AllocHGlobal(size);
 		try
 		{
-			// cbSize da estrutura SP_DEVICE_INTERFACE_DETAIL_DATA_W: 8 em 64 bits
+			// cbSize of the SP_DEVICE_INTERFACE_DETAIL_DATA_W struct: 8 on 64-bit
 			Marshal.WriteInt32(buffer, (IntPtr.Size == 8) ? 8 : 6);
 			if (!SetupDiGetDeviceInterfaceDetail(set, ref data, buffer, size, out size, IntPtr.Zero))
 			{
@@ -395,7 +395,7 @@ public class PortRumble : MonoBehaviour
 
 	private static SonyPad TryOpen(string path)
 	{
-		// Primeiro abre sem acesso para ler o VID/PID (nao atrapalha outros programas)
+		// First open without access to read the VID/PID (does not disturb other programs)
 		using (SafeFileHandle probe = CreateFile(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero))
 		{
 			if (probe.IsInvalid)
@@ -440,11 +440,11 @@ public class PortRumble : MonoBehaviour
 			return null;
 		}
 		bool isDs4 = Array.IndexOf(c_DS4Products, a.ProductID) >= 0;
-		Debug.Log("[PortRumble] HID aberto: " + a.ProductID.ToString("X4") + " saida " + outputLength);
+		Debug.Log("[PortRumble] HID opened: " + a.ProductID.ToString("X4") + " output " + outputLength);
 		SonyPad pad = new SonyPad();
 		pad.Handle = handle;
 		pad.ReportLength = outputLength;
-		// Pela USB o maior relatorio de saida e pequeno (32 no DS4, 48 no DualSense); pelo Bluetooth e bem maior.
+		// Over USB the largest output report is small (32 on DS4, 48 on DualSense); over Bluetooth it is much larger.
 		if (isDs4)
 		{
 			pad.Kind = (outputLength <= 32) ? SonyKind.DS4Usb : SonyKind.DS4Bluetooth;
@@ -453,7 +453,7 @@ public class PortRumble : MonoBehaviour
 		{
 			pad.Kind = (outputLength <= 64) ? SonyKind.DualSenseUsb : SonyKind.DualSenseBluetooth;
 		}
-		Debug.Log("[PortRumble] Controle PlayStation encontrado: " + pad.Kind + " (relatorio " + outputLength + ")");
+		Debug.Log("[PortRumble] PlayStation gamepad found: " + pad.Kind + " (report " + outputLength + ")");
 		return pad;
 	}
 

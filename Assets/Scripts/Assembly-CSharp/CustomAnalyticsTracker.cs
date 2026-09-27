@@ -13,9 +13,9 @@ public class CustomAnalyticsTracker : MonoBehaviour
 
 	private static CustomAnalyticsTracker instance;
 
-	// PORT: analytics (Unity Analytics) removido. Todos os eventos viraram no-op;
-	// so foi mantido o que tem efeito local: contagem de sessoes (DataManager.SaveSessionData)
-	// e a mensagem AnalyticsNewSessionInitFinished, que continua a inicializacao.
+	// PORT: analytics (Unity Analytics) removed. All events are now no-ops;
+	// only what has a local effect was kept: session counting (DataManager.SaveSessionData)
+	// and the AnalyticsNewSessionInitFinished message, which continues the initialization.
 	public static CustomAnalyticsTracker Instance => instance;
 
 	private void Awake()
@@ -32,7 +32,7 @@ public class CustomAnalyticsTracker : MonoBehaviour
 	public void Init()
 	{
 		m_InitStartTime = DateTime.Now;
-		// PORT: substitui AnalyticsSessionInfo.sessionId (um id novo a cada execucao do jogo)
+		// PORT: replaces AnalyticsSessionInfo.sessionId (a new id on every game launch)
 		m_sessionId = DateTime.Now.Ticks;
 	}
 

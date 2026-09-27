@@ -477,7 +477,7 @@ public class CustomGameManager : MonoBehaviour
 		GameStateName stateName = m_StateStack[m_StateStack.Count - 2].GetName();
 		m_StateStack[m_StateStack.Count - 2].GetName();
 		SetOptionsForState(stateName, fromStateName);
-		// Original: o estado anterior recebe ele mesmo como "from".
+		// Original: the previous state receives itself as "from".
 		m_StateStack[m_StateStack.Count - 2].Enter(m_StateStack[m_StateStack.Count - 2]);
 		m_StateStack.RemoveAt(m_StateStack.Count - 1);
 	}
@@ -504,7 +504,7 @@ public class CustomGameManager : MonoBehaviour
 		GameStateName stateName = state.GetName();
 		m_StateStack[m_StateStack.Count - 1].GetName();
 		SetOptionsForState(stateName, fromStateName);
-		// Original: Enter recebe o topo da pilha (o proprio estado recem-adicionado).
+		// Original: Enter receives the top of the stack (the newly added state itself).
 		state.Enter(m_StateStack[m_StateStack.Count - 1]);
 	}
 
@@ -766,7 +766,7 @@ public class CustomGameManager : MonoBehaviour
 
 	private void PlayerKilled()
 	{
-		// PORT: vibra o controle quando o personagem morre (qualquer causa), respeitando a opcao de vibracao.
+		// PORT: rumble the gamepad when the player dies (any cause), honoring the vibration option.
 		if (DataManager.Instance.playerData.useVibration)
 		{
 			PortRumble.Death();

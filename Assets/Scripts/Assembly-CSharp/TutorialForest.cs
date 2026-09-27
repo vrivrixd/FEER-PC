@@ -53,7 +53,7 @@ public class TutorialForest : ThemeTutorial
 		}
 		else
 		{
-			// passos com morte possivel: 16,18,19,23,25,26,30,32,33
+			// steps where the player can die: 16,18,19,23,25,26,30,32,33
 			bool deadlyStep = (step < 31) ? ((1 << step) & 0x468D0000) != 0 : ((step & -2) == 32);
 			if (!deadlyStep)
 			{
@@ -96,7 +96,7 @@ public class TutorialForest : ThemeTutorial
 		CGM.trackManager.TutorialResumeRunning();
 	}
 
-	// pista (0 esquerda, 1 centro, 2 direita) -> posicao de spawn relativa (-1, 0, 1)
+	// lane (0 left, 1 center, 2 right) -> relative spawn position (-1, 0, 1)
 	private static int LaneToSpawn(int lane)
 	{
 		return lane - 1;
@@ -304,7 +304,7 @@ public class TutorialForest : ThemeTutorial
 			Say(17, 1f, 0.5f);
 			break;
 		case 36:
-			// PORT: CustomAnalyticsTracker.TutorialComplete removido.
+			// PORT: CustomAnalyticsTracker.TutorialComplete removed.
 			m_ParentGameState.TutorialEnd();
 			break;
 		}
@@ -348,7 +348,7 @@ public class TutorialForest : ThemeTutorial
 		CGM.trackManager.TutorialSpawnFairy(spawn, false);
 	}
 
-	// Pede para ir a pista indicada (esquerda/centro/direita) e marca a proxima pista do spawn
+	// Asks the player to move to the given lane (left/center/right) and sets the next spawn lane
 	private void SayMoveToLane(bool fromRepeatTime2)
 	{
 		int lane = CGM.currentLane;
@@ -578,7 +578,7 @@ public class TutorialForest : ThemeTutorial
 
 	public override void TutorialSkipped()
 	{
-		// PORT: so enviava o evento de analytics TutorialSkip.
+		// PORT: it only sent the TutorialSkip analytics event.
 	}
 
 	public override void PlayerDied()

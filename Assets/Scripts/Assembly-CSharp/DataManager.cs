@@ -315,7 +315,7 @@ public class DataManager : MonoBehaviour
 			m_PlayerRemoteSettings.websiteURL_en = "https://www.mentalhome.eu/feer/";
 			SavePlayerRemoteSettings();
 		}
-		// PORT: sem Unity RemoteSettings (online). O jogo segue como se o servidor nao tivesse respondido.
+		// PORT: no Unity RemoteSettings (online). The game continues as if the server had not answered.
 		m_UpdateAvailable = false;
 		m_ForceToUpdate = false;
 		InitStepDone();
@@ -323,7 +323,7 @@ public class DataManager : MonoBehaviour
 
 	protected void UpdatePlayerRemoteSettingsData(string fromVersionNumber)
 	{
-		// PORT: migracao de saves de versoes antigas do Android; nunca executada numa instalacao nova no PC.
+		// PORT: save migration from old Android versions; never runs on a fresh PC install.
 	}
 
 	private IEnumerator RemoteSettingsTimeOut()
@@ -342,12 +342,12 @@ public class DataManager : MonoBehaviour
 
 	private void HandleRemoteUpdate()
 	{
-		// PORT: Unity RemoteSettings removido (online).
+		// PORT: Unity RemoteSettings removed (online).
 	}
 
 	public void RemoteSettingsUpdateCompleted(bool wasUpdatedFromServer, bool settingsChanged, int serverResponse)
 	{
-		// PORT: Unity RemoteSettings removido (online).
+		// PORT: Unity RemoteSettings removed (online).
 		m_UpdateAvailable = false;
 		m_ForceToUpdate = false;
 	}
@@ -655,7 +655,7 @@ public class DataManager : MonoBehaviour
 
 	private IEnumerator InformAnalyticsOfUpgrade(string transactionalItem, int level, int distance)
 	{
-		// PORT: analytics removido.
+		// PORT: analytics removed.
 		yield break;
 	}
 
@@ -707,7 +707,7 @@ public class DataManager : MonoBehaviour
 			m_PlayerStats.lightsSpent = maxScoreCoinsValue;
 		}
 		SavePlayerStats();
-		// PORT: evento de analytics (ItemSpent) removido.
+		// PORT: analytics event (ItemSpent) removed.
 		return true;
 	}
 
@@ -723,7 +723,7 @@ public class DataManager : MonoBehaviour
 			m_PlayerData.coins = maxScoreCoinsValue;
 		}
 		SavePlayerData();
-		// PORT: evento de analytics (ItemAcquired) removido.
+		// PORT: analytics event (ItemAcquired) removed.
 	}
 
 	public void GameOver()
@@ -754,7 +754,7 @@ public class DataManager : MonoBehaviour
 			m_PlayerThemeData.themeFactoryWaitingForApproval = false;
 			SavePlayerThemeData();
 		}
-		// PORT: compras removidas; o tema Factory (comprado no Android) fica sempre liberado.
+		// PORT: purchases removed; the Factory theme (bought on Android) is always unlocked.
 		if ((gameMode == GameMode.Presentation || true) && !m_PlayerThemeData.themeFactoryPurchased)
 		{
 			m_PlayerThemeData.themeFactoryPurchased = true;
@@ -786,7 +786,7 @@ public class DataManager : MonoBehaviour
 
 	protected void UpdatePlayerData(string fromVersionNumber)
 	{
-		// PORT: migracao de saves de versoes antigas do Android; nunca executada numa instalacao nova no PC.
+		// PORT: save migration from old Android versions; never runs on a fresh PC install.
 	}
 
 	protected void LoadPlayerData()
@@ -920,7 +920,7 @@ public class DataManager : MonoBehaviour
 
 	protected IEnumerator ServerPostRequestImplementation(string url, string json, Action<bool, string, InfoMessage> callback, InfoMessage infoMessage = InfoMessage.None)
 	{
-		// PORT: funcoes online removidas. Toda requisicao ao servidor falha como se nao houvesse internet.
+		// PORT: online features removed. Every server request fails as if there were no internet.
 		yield return null;
 		if (callback != null)
 		{
@@ -979,7 +979,7 @@ public class DataManager : MonoBehaviour
 		StartCoroutine(FetchImageData(filePath, callbackFunction));
 	}
 
-	// PORT: no Windows o streamingAssetsPath e um caminho local simples; o UnityWebRequest precisa de "file://".
+	// PORT: on Windows streamingAssetsPath is a plain local path; UnityWebRequest needs "file://".
 	private static string ToRequestUrl(string filePath)
 	{
 		if (filePath.Contains("://"))
@@ -1007,7 +1007,7 @@ public class DataManager : MonoBehaviour
 
 	protected void UpdatePlayerStatsData(string fromVersionNumber)
 	{
-		// PORT: migracao de saves de versoes antigas do Android; nunca executada numa instalacao nova no PC.
+		// PORT: save migration from old Android versions; never runs on a fresh PC install.
 	}
 
 	protected void LoadPlayerStats()

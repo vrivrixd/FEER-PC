@@ -5,13 +5,13 @@ using System.Threading;
 using Microsoft.Win32.SafeHandles;
 using UnityEngine;
 
-// PORT: le DualShock 4 / DualSense direto pelo HID (USB e Bluetooth).
+// PORT: reads DualShock 4 / DualSense directly through HID (USB and Bluetooth).
 //
-// Pelo Bluetooth o controle passa a mandar o relatorio estendido (0x11 no DS4, 0x31 no DualSense)
-// assim que algum programa pede (Steam, a propria vibracao...). O Windows nao entrega esse relatorio
-// como joystick, entao o Unity para de ver os botoes. Lendo o HID aqui, os dois modos funcionam igual.
+// Over Bluetooth the gamepad switches to the extended report (0x11 on DS4, 0x31 on DualSense)
+// as soon as some program requests it (Steam, the rumble itself...). Windows does not deliver that report
+// as a joystick, so Unity stops seeing the buttons. Reading the HID here makes both modes work the same.
 //
-// Os botoes usam a mesma numeracao do Unity/DirectInput: 0 Quadrado, 1 Cruz, 2 Circulo, 3 Triangulo,
+// Buttons use the same numbering as Unity/DirectInput: 0 Square, 1 Cross, 2 Circle, 3 Triangle,
 // 4 L1, 5 R1, 6 L2, 7 R2, 8 Share/Create, 9 Options, 10 L3, 11 R3, 12 PS, 13 Touchpad.
 public static class PortSonyInput
 {
@@ -42,7 +42,7 @@ public static class PortSonyInput
 
 	private static float s_NextScan;
 
-	// Estado do frame atual (preenchido por Poll)
+	// Current frame state (filled by Poll)
 	public static bool Active { get; private set; }
 
 	public static int PressedThisFrame { get; private set; }
@@ -53,7 +53,7 @@ public static class PortSonyInput
 
 	public static Vector2 Dpad { get; private set; }
 
-	// Chamado uma vez por frame pelo PortInput
+	// Called once per frame by PortInput
 	public static void Poll()
 	{
 		lock (s_Lock)
@@ -113,7 +113,7 @@ public static class PortSonyInput
 				thread.IsBackground = true;
 				thread.Name = "PortSonyInput";
 				thread.Start();
-				Debug.Log("[PortSonyInput] Lendo " + (pad.Value ? "DualSense" : "DualShock 4") + " pelo HID");
+				Debug.Log("[PortSonyInput] Reading " + (pad.Value ? "DualSense" : "DualShock 4") + " through HID");
 			}
 		}
 		catch (Exception e)
@@ -150,18 +150,18 @@ public static class PortSonyInput
 		bool dsLayout;
 		if (r[0] == 0x11 && !dualSense && len >= 12)
 		{
-			o = 3; // DS4 Bluetooth estendido
+			o = 3; // DS4 Bluetooth extended
 			dsLayout = false;
 		}
 		else if (r[0] == 0x31 && dualSense && len >= 13)
 		{
-			o = 2; // DualSense Bluetooth estendido
+			o = 2; // DualSense Bluetooth extended
 			dsLayout = true;
 		}
 		else if (r[0] == 0x01 && len >= 10)
 		{
 			o = 1;
-			// DualSense pela USB manda o relatorio completo; pelo Bluetooth simples tem o formato do DS4
+			// DualSense over USB sends the full report; the simple Bluetooth report has the DS4 layout
 			dsLayout = dualSense && len >= 64;
 		}
 		else

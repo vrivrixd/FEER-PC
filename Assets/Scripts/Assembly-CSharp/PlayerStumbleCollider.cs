@@ -104,7 +104,7 @@ public class PlayerStumbleCollider : MonoBehaviour
 		stumbleAudio.Play();
 		if (DataManager.Instance.playerData.useVibration)
 		{
-			// PORT: no PC vibra o controle.
+			// PORT: on PC, rumble the gamepad.
 #if UNITY_ANDROID || UNITY_IOS
 			Handheld.Vibrate();
 #else

@@ -236,7 +236,7 @@ public class LocalizationManager : MonoBehaviour
 	{
 		m_Init = false;
 		SetUserLanguage(toLanguage);
-		// PORT: AndroidTTS.ChangeLanguage removido (TTS do Android/Google).
+		// PORT: AndroidTTS.ChangeLanguage removed (Android/Google TTS).
 		LoadLocalizedText();
 	}
 

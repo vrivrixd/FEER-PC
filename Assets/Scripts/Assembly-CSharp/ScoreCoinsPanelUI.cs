@@ -101,7 +101,7 @@ public class ScoreCoinsPanelUI : MonoBehaviour
 		{
 			m_AccessibleRoot.enabled = false;
 		}
-		// GameOver (1) ou MenuLeaderboard (5): cor de recorde; Perfil (12): cor do perfil
+		// GameOver (1) or MenuLeaderboard (5): highscore color; Profile (12): profile color
 		if (stateName == GameStateName.GameOver || stateName == GameStateName.MenuLeaderboard)
 		{
 			scoreText.color = highscoreColor;

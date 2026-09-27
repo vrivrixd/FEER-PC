@@ -553,7 +553,7 @@ public class PlayerInputController : MonoBehaviour
 			return;
 		}
 		PlayerData_v_1_1_3 playerData = DataManager.Instance.playerData;
-		// PORT: além das setas originais, aceita os gestos virtuais do PortInput (joystick/mouse).
+		// PORT: besides the original arrow keys, accepts the virtual gestures from PortInput (gamepad/mouse).
 		bool keyLeft = PortInput.GetKeyDown(KeyCode.LeftArrow) || PortInput.GameSwipeLeft;
 		bool keyRight = PortInput.GetKeyDown(KeyCode.RightArrow) || PortInput.GameSwipeRight;
 		bool keyUp = PortInput.GetKeyDown(KeyCode.UpArrow) || PortInput.GameSwipeUp;

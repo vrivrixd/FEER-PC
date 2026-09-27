@@ -62,7 +62,7 @@ public abstract class Mission
 
 	public MissionScope missionScope => m_Scope;
 
-	// ---- Rotinas comuns (no original estao duplicadas, identicas, em cada subclasse) ----
+	// ---- Common routines (in the original they are duplicated, identical, in every subclass) ----
 
 	protected static string L(string key)
 	{
@@ -85,7 +85,7 @@ public abstract class Mission
 		m_Type = type;
 	}
 
-	// "VERBO 3 vezes" / tts: "VERBO um vez"
+	// "VERB 3 times" / tts: "VERB one time"
 	protected void SetCountTitle(string verbKey, string oneKey, string manyKey)
 	{
 		if (m_Goal <= 1f)
@@ -100,7 +100,7 @@ public abstract class Mission
 		}
 	}
 
-	// Titulo com versao TTS propria tambem no plural
+	// Title with its own TTS version, also in the plural
 	protected void SetCountTitleTTS(string verbKey, string verbTTSKey, string oneKey, string oneTTSKey, string manyKey, string manyTTSKey)
 	{
 		m_IsMissionTitleTTS = true;
@@ -116,7 +116,7 @@ public abstract class Mission
 		}
 	}
 
-	// Titulos que dependem do tema (Forest/Factory): "SOBREVIVA a 3 ZUMBIS"
+	// Titles that depend on the theme (Forest/Factory): "SURVIVE 3 ZOMBIES"
 	protected void SetThemeCountTitle(string verbKey, string oneFactory, string oneForest, string manyFactory, string manyForest)
 	{
 		bool factory = DataManager.Instance.selectedTheme == Theme.Factory;
@@ -244,7 +244,7 @@ public abstract class Mission
 		return value;
 	}
 
-	// Missoes "EXATAMENTE n": passar do objetivo zera o progresso
+	// "EXACTLY n" missions: going past the goal resets the progress
 	protected string ExactProgress(int count)
 	{
 		int number = 0;
@@ -298,7 +298,7 @@ public abstract class Mission
 		m_Progress = 0f;
 	}
 
-	// Missoes "sem X": se X aconteceu (blocker >= 1) o progresso fica 0
+	// "without X" missions: if X happened (blocker >= 1) the progress stays 0
 	protected string WithoutProgress(int blocker)
 	{
 		int number = 0;

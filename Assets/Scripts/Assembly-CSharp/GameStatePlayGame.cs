@@ -513,9 +513,9 @@ public class GameStatePlayGame : GameState
 
 	public void SkipTutorialBtnClicked()
 	{
-		// PORT: com a confirmacao de pular ja aberta, o gesto de pausa (Esc) de novo continua o tutorial.
-		// No original ele pausava o tutorial uma segunda vez; a pista guardava "parada" como estado
-		// anterior e, ao continuar, ficava parada com o personagem correndo (obstaculo preso atras).
+		// PORT: with the skip confirmation already open, the pause gesture (Esc) again resumes the tutorial.
+		// In the original it paused the tutorial a second time; the track stored "stopped" as its previous
+		// state and, on resume, stayed stopped while the player kept running (obstacle stuck behind).
 		if (m_Status == GameStateStatus.TutorialPaused && ConfirmSkipTutorial.activeSelf)
 		{
 			ConfirmTutorialResumeClicked();

@@ -36,8 +36,8 @@ public class IAPManager : MonoBehaviour
 
 	private static IAPManager instance;
 
-	// PORT: compras removidas. O tema Factory ja vem liberado (DataManager.LoadPlayerThemeData);
-	// o gerenciador fica inicializado mas sem loja.
+	// PORT: purchases removed. The Factory theme comes unlocked (DataManager.LoadPlayerThemeData);
+	// the manager is initialized but has no store.
 	public bool initializationFailed
 	{
 		get

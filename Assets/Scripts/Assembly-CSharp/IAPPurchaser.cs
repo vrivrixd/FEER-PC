@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Port para PC: compras removidas. O tema Factory fica sempre liberado (ver DataManager).
+// PC port: purchases removed. The Factory theme is always unlocked (see DataManager).
 public class IAPPurchaser : MonoBehaviour
 {
 	protected const string c_PRODUCT_ID_THEME_FACTORY = "eu.mentalhome.feer.theme_factory";

@@ -284,7 +284,7 @@ public class MissionManager : MonoBehaviour
 			{
 				missionData.scope = MissionScope.SingleRun;
 			}
-			// no original: switch de strings com os nomes do enum MissionType
+			// in the original: a string switch over the MissionType enum names
 			string type = jsonMissionSet.missions[i].type;
 			if (type != null && Enum.IsDefined(typeof(MissionType), type))
 			{
@@ -299,7 +299,7 @@ public class MissionManager : MonoBehaviour
 		{
 			DataManager.Instance.UpdatePlayerServerData(false);
 		}
-		// PORT: CustomAnalyticsTracker.MissionUnlocked removido (analytics).
+		// PORT: CustomAnalyticsTracker.MissionUnlocked removed (analytics).
 	}
 
 	public void UpdateProgress()
@@ -404,7 +404,7 @@ public class MissionManager : MonoBehaviour
 		{
 			DataManager.Instance.UpdatePlayerServerData(false);
 		}
-		// PORT: CustomAnalyticsTracker.MissionUnlocked removido (analytics).
+		// PORT: CustomAnalyticsTracker.MissionUnlocked removed (analytics).
 		if (m_NextMissionCallbackFunction != null)
 		{
 			m_NextMissionCallbackFunction(true);

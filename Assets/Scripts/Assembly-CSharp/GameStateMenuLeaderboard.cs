@@ -262,7 +262,7 @@ public class GameStateMenuLeaderboard : GameState
 		{
 			return;
 		}
-		// Convite de amigo recebido por link (mentalhomefeer://); no PC nao acontece.
+		// Friend invite received via link (mentalhomefeer://); never happens on PC.
 		if (!m_PlayerRegistered)
 		{
 			m_ProcessInvitation = true;
@@ -529,7 +529,7 @@ public class GameStateMenuLeaderboard : GameState
 		DataManager.Instance.SetNickname(value);
 	}
 
-	// PORT: sucesso so acontece com o servidor online (removido).
+	// PORT: success only happens with the online server (removed).
 	protected void UsernameSuccess()
 	{
 		m_UsernameFinished = true;
@@ -780,7 +780,7 @@ public class GameStateMenuLeaderboard : GameState
 		}
 	}
 
-	// PORT: placar online removido; os dados do servidor nunca chegam.
+	// PORT: online leaderboard removed; server data never arrives.
 	protected void ExtractHighscoreData(string receivedData)
 	{
 		ConnectionError();

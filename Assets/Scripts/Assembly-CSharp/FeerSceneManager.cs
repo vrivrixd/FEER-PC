@@ -189,7 +189,7 @@ public class FeerSceneManager : MonoBehaviour
 
 	private IEnumerator ListenForCustomURLSchemes(float listeningTime)
 	{
-		// PORT: no Android le o Intent (links mentalhomefeer://) via AndroidJavaClass. Nao existe no Windows.
+		// PORT: on Android this reads the Intent (mentalhomefeer:// links) via AndroidJavaClass. Not available on Windows.
 		yield break;
 	}
 
@@ -333,7 +333,7 @@ public class FeerSceneManager : MonoBehaviour
 	public void ChangeLanguage(SystemLanguage toLanguage)
 	{
 		Screen.sleepTimeout = -1;
-		// PORT: CustomAnalyticsTracker.LanguageChanged removido (analytics).
+		// PORT: CustomAnalyticsTracker.LanguageChanged removed (analytics).
 		m_ChangeLanguage = true;
 		m_ChangingLanguageUAP.m_Text = LocalizationManager.Instance.GetLocalizedValue("changing_language");
 		loadingCanvas.SetActive(true);
@@ -368,7 +368,7 @@ public class FeerSceneManager : MonoBehaviour
 		m_ChangeTheme = false;
 	}
 
-	// Espera (sem ceder o frame, como no original) ate 3 s de deltaTime acumulado pelo inicio da fala
+	// Waits (without yielding the frame, as in the original) up to 3 s of accumulated deltaTime for speech to start
 	private static void WaitForSpeechStart()
 	{
 		float time = 0f;

@@ -107,7 +107,7 @@ public abstract class ThemeTutorial : MonoBehaviour
 		}
 	}
 
-	// Espera 1 s e, se o tutorial foi pausado nesse meio tempo, espera a retomada e mais 1 s
+	// Waits 1 s and, if the tutorial was paused meanwhile, waits for the resume plus 1 more second
 	private IEnumerator WaitAfterEvent()
 	{
 		yield return new WaitForSeconds(1f);

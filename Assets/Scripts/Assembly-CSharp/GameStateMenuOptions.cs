@@ -352,7 +352,7 @@ public class GameStateMenuOptions : GameState
 	public void ValueChangedVoiceOver(bool selected)
 	{
 		ToggleClicked(voiceOverImage, selected);
-		// PORT: CustomAnalyticsTracker.SettingsChanged removido.
+		// PORT: CustomAnalyticsTracker.SettingsChanged removed.
 	}
 
 	public void LeftRightReverseInfoClicked()
@@ -388,7 +388,7 @@ public class GameStateMenuOptions : GameState
 
 	public void RePlayTutorial()
 	{
-		// PORT: CustomAnalyticsTracker.HelpOptionSelected removido.
+		// PORT: CustomAnalyticsTracker.HelpOptionSelected removed.
 		CustomGameManager.Instance.SwitchState(GameStateName.PlayGame);
 	}
 
@@ -515,8 +515,8 @@ public class GameStateMenuOptions : GameState
 		StopPlayingPowerUpSound();
 	}
 
-	// PORT: links externos (site, FAQ, suporte, redes sociais, avaliacao, compartilhamento) removidos
-	// por pedido do usuario (sem funcoes online). Os botoes continuam na tela, mas nao fazem nada.
+	// PORT: external links (website, FAQ, support, social media, rating, sharing) removed
+	// at the user's request (no online features). The buttons stay on screen but do nothing.
 	public void FAQBtnClicked()
 	{
 	}
@@ -551,7 +551,7 @@ public class GameStateMenuOptions : GameState
 
 	public void ConfirmResetYesClicked()
 	{
-		// PORT: CustomAnalyticsTracker.ResetGameClicked removido.
+		// PORT: CustomAnalyticsTracker.ResetGameClicked removed.
 		FeerSceneManager.Instance.ResetAllData();
 	}
 

@@ -4,7 +4,7 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-// PORT: ferramenta de diagnostico - lista os parametros dos efeitos do mixer como o editor os ve.
+// PORT: diagnostic tool - lists the mixer effect parameters as the editor sees them.
 public static class PortMixerDump
 {
     public static void Dump()

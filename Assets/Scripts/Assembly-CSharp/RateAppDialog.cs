@@ -17,7 +17,7 @@ public class RateAppDialog : MonoBehaviour
 
 	public void Show()
 	{
-		// PORT: o pedido de avaliacao na Play Store nao existe no PC; segue direto como se o dialogo nao fosse exibido.
+		// PORT: the Play Store rating request does not exist on PC; continue as if the dialog was not shown.
 		if (false && DataManager.Instance.playerData.showAppRateDialog && ShouldPrompt())
 		{
 			ShowRatePanel();
@@ -26,7 +26,7 @@ public class RateAppDialog : MonoBehaviour
 		gameOverState.RateAppDialogClosed();
 	}
 
-	// Regras originais de exibicao (mantidas para referencia)
+	// Original display rules (kept for reference)
 	private bool ShouldPrompt()
 	{
 		AppRateData appRateData = DataManager.Instance.appRateData;
@@ -64,7 +64,7 @@ public class RateAppDialog : MonoBehaviour
 	public void RateAppBtnClicked()
 	{
 		DataManager.Instance.AppRatingNeverAgain();
-		// PORT: abrir a Play Store e analytics removidos.
+		// PORT: opening the Play Store and analytics removed.
 		Hide();
 	}
 

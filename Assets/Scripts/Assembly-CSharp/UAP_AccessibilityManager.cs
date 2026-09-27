@@ -339,7 +339,7 @@ public class UAP_AccessibilityManager : MonoBehaviour
 
 	//////////////////////////////////////////////////////////////////////////
 
-	// FEER: na versao do jogo o Start e vazio; o plugin e iniciado por StartPlugin() (FeerSceneManager.InitAllData)
+	// FEER: in the game's version Start is empty; the plugin is started by StartPlugin() (FeerSceneManager.InitAllData)
 	void Start()
 	{
 	}
@@ -353,14 +353,14 @@ public class UAP_AccessibilityManager : MonoBehaviour
 		SceneManager.sceneLoaded += instance.OnSceneLoaded;
 		m_PluginStarted = true;
 #if UNITY_ANDROID
-		// PORT: aviso para suspender o TalkBack; so faz sentido no Android
+		// PORT: notice to suspend TalkBack; only meaningful on Android
 		if (m_IsEnabled)
 			instance.Say_Internal(Localize("TalkBack_PleaseSuspend"), false, true, (UAP_AudioQueue.EInterrupt)0x4f);
 #endif
 	}
 
-	// PORT: gesto de pausa (toque duplo com dois dedos) acionado por tecla/joystick no PC
-	// PORT: true enquanto um elemento (ex.: campo de texto) esta sendo editado; o Esc cancela a edicao.
+	// PORT: pause gesture (two-finger double tap) triggered by key/gamepad on PC
+	// PORT: true while an element (e.g. a text field) is being edited; Esc cancels the edit.
 	public static bool PortIsInteracting()
 	{
 		return instance != null && (instance.m_CurrentElementHasSoleFocus || UAP_VirtualKeyboard.IsOpen());
@@ -4798,7 +4798,7 @@ public class UAP_AccessibilityManager : MonoBehaviour
 	/// </summary>
 	/// <param name="key"></param>
 	/// <returns></returns>
-	// FEER: a versao do jogo usa o LocalizationManager do proprio jogo
+	// FEER: the game's version uses the game's own LocalizationManager
 	static public string Localize(string key)
 	{
 		if (key.Length > 0)
@@ -4813,7 +4813,7 @@ public class UAP_AccessibilityManager : MonoBehaviour
 	/// <returns></returns>
 	static public string Localize_Internal(string key)
 	{
-		// FEER: a versao do jogo consulta primeiro o LocalizationManager do jogo
+		// FEER: the game's version checks the game's LocalizationManager first
 		if (LocalizationManager.Instance != null)
 			return LocalizationManager.Instance.GetLocalizedValue(key);
 

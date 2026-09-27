@@ -340,7 +340,7 @@ public class GameStateProfile : GameState
 		}
 	}
 
-	// PORT: sucesso so acontece com o servidor online (removido); mantido de forma simplificada.
+	// PORT: success only happens with the online server (removed); kept in a simplified form.
 	protected void UsernameSuccess()
 	{
 		m_UsernameFinished = true;
@@ -506,7 +506,7 @@ public class GameStateProfile : GameState
 
 	public void ShareBtnClicked()
 	{
-		// PORT: compartilhamento removido (pedido do usuario).
+		// PORT: sharing removed (user request).
 	}
 
 	protected void PopulateSharePopUpAndroid()

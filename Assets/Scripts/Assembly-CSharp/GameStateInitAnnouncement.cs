@@ -69,7 +69,7 @@ public class GameStateInitAnnouncement : GameState
 
 	public void UpdateAppBtnClicked()
 	{
-		// PORT: sem loja/atualizacao online no PC.
+		// PORT: no store/online update on PC.
 	}
 
 	private void GoToMenuOrLeaderboard()

@@ -33,9 +33,9 @@ public class WindowsTTS : MonoBehaviour
 	//[DllImport("nvdaControllerClient")]
 	//internal static extern int nvdaController_isSpeaking();
 
-	// PORT: o plugin original so reconhecia o NVDA. Agora usa o Tolk, que fala pelo leitor de tela
-	// em uso (NVDA, JAWS, System Access, ZoomText, Dolphin...). Sem leitor de tela,
-	// continua usando a voz SAPI do plugin (WindowsTTS.dll). Se o Tolk faltar, volta ao NVDA direto.
+	// PORT: the original plugin only recognized NVDA. It now uses Tolk, which speaks through the screen
+	// reader in use (NVDA, JAWS, System Access, ZoomText, Dolphin...). Without a screen reader it
+	// keeps using the plugin's SAPI voice (WindowsTTS.dll). If Tolk is missing, it falls back to NVDA directly.
 	[DllImport("Tolk")]
 	private static extern void Tolk_Load();
 
@@ -56,7 +56,7 @@ public class WindowsTTS : MonoBehaviour
 	[DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
 	private static extern IntPtr LoadLibrary(string path);
 
-	private static int s_TolkState = 0; // 0 = nao carregado, 1 = ok, -1 = indisponivel
+	private static int s_TolkState = 0; // 0 = not loaded, 1 = ok, -1 = unavailable
 
 	private static string s_ScreenReaderName = null;
 
@@ -68,7 +68,7 @@ public class WindowsTTS : MonoBehaviour
 		{
 			try
 			{
-				// As DLLs dos leitores ficam em Plugins; o Tolk as carrega pelo nome, entao pre-carrega pelo caminho completo.
+				// The screen reader DLLs live in Plugins; Tolk loads them by name, so preload them by full path.
 				string dir = System.IO.Path.Combine(Application.dataPath, "Plugins/x86_64");
 				foreach (string dll in new[] { "nvdaControllerClient64.dll", "SAAPI64.dll" })
 				{
@@ -87,14 +87,14 @@ public class WindowsTTS : MonoBehaviour
 			}
 			catch (Exception e)
 			{
-				Debug.LogWarning("[Accessibility] Tolk indisponivel, usando NVDA direto: " + e.Message);
+				Debug.LogWarning("[Accessibility] Tolk unavailable, using NVDA directly: " + e.Message);
 				s_TolkState = -1;
 			}
 		}
 		return s_TolkState == 1;
 	}
 
-	// Leitor de tela ativo agora (null se nenhum)
+	// Screen reader currently active (null if none)
 	private static bool DetectScreenReader()
 	{
 		if (EnsureTolk())
@@ -104,7 +104,7 @@ public class WindowsTTS : MonoBehaviour
 			if (sr != s_ScreenReaderName)
 			{
 				s_ScreenReaderName = sr;
-				Debug.Log("[Accessibility] Leitor de tela: " + (sr ?? "nenhum (usando SAPI)"));
+				Debug.Log("[Accessibility] Screen reader: " + (sr ?? "none (using SAPI)"));
 			}
 			return sr != null;
 		}
@@ -179,8 +179,8 @@ public class WindowsTTS : MonoBehaviour
 			{
 				nvdaController_speakText(msg);
 			}
-			// PORT: o NVDA nao informa quando termina de falar; a duracao e estimada pelo tamanho do texto.
-			// Original do plugin: 16 caracteres por segundo. Ajustado para 20 (pausas ~20% menores).
+			// PORT: NVDA does not report when it finishes speaking; the duration is estimated from the text length.
+			// Plugin original: 16 characters per second. Tuned to 20 (pauses ~20% shorter).
 			m_NVDAIsSpeakingTimer += (msg.Length / c_NVDACharsPerSecond);
 		}
 		else
@@ -236,7 +236,7 @@ public class WindowsTTS : MonoBehaviour
 		if (m_NVDAIsSpeakingTimer > 0.0f)
 			m_NVDAIsSpeakingTimer -= Time.unscaledDeltaTime;
 
-		// PORT: acompanha a troca de leitor de tela com o jogo aberto (ex.: fechar o NVDA e abrir o JAWS)
+		// PORT: follows screen reader changes while the game is open (e.g. closing NVDA and starting JAWS)
 		if (Time.unscaledTime >= m_NextDetect)
 		{
 			m_NextDetect = Time.unscaledTime + 2f;

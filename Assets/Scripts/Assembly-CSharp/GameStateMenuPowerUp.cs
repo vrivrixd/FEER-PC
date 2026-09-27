@@ -133,7 +133,7 @@ public class GameStateMenuPowerUp : GameState
 
 	protected Theme m_SelectedThemeToBuy;
 
-	// Dados de cada poder na loja (no original as quatro variantes sao codigo duplicado identico)
+	// Data for each power-up in the store (in the original the four variants are identical duplicated code)
 	private class PowerUpUI
 	{
 		public int index;
@@ -355,7 +355,7 @@ public class GameStateMenuPowerUp : GameState
 		p.accessibleBtn.m_CustomHint = !affordable;
 	}
 
-	// Depois de uma compra: desativa os botoes que ficaram caros demais
+	// After a purchase: disables the buttons that became too expensive
 	private void UpdatePowerUpBtn(PowerUpUI p)
 	{
 		if (!p.btn.interactable)
@@ -691,7 +691,7 @@ public class GameStateMenuPowerUp : GameState
 		if (!DataManager.Instance.playerThemeData.themeFactoryPurchased)
 		{
 			AdjustThemeBuyButtons(Theme.Factory);
-			// PORT: CustomAnalyticsTracker.StoreItemClicked removido.
+			// PORT: CustomAnalyticsTracker.StoreItemClicked removed.
 			m_ThemePreviewActive = true;
 			previewFactoryPanel.SetActive(true);
 		}

@@ -290,7 +290,7 @@ public class SelectThemeInputController : MonoBehaviour
 
 	protected void ExpandFactoryTheme()
 	{
-		// PORT: CustomAnalyticsTracker.StoreItemClicked removido (analytics).
+		// PORT: CustomAnalyticsTracker.StoreItemClicked removed (analytics).
 		m_ThemeIsExpanded = true;
 		swipeAnimator.Play("SecondThemeExpand");
 	}

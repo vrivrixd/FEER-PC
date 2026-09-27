@@ -108,8 +108,8 @@ public class GameStatePause : GameState
 		}
 	}
 
-	// PORT: no PC o Esc/Circulo no menu de pausa continua o jogo (no original so o botao Continuar).
-	// Com uma confirmacao aberta, o Esc cancela a confirmacao.
+	// PORT: on PC, Esc/Circle in the pause menu resumes the game (in the original only the Resume button did).
+	// With a confirmation open, Esc cancels the confirmation.
 	public override bool PortBack()
 	{
 		if (!gameObject.activeSelf)

@@ -212,7 +212,7 @@ public class GameStateGameOver : GameState
 		{
 			dataManager.SaveCoins(CGM.sumCollectedGhosts, (TransactionContext)2, (TransactionalItem)6, (TransactionItemType)4, null);
 		}
-		// PORT: CustomAnalyticsTracker.GameOver removido (analytics).
+		// PORT: CustomAnalyticsTracker.GameOver removed (analytics).
 		dataManager.GameOver();
 		m_IsNewHighscore = IsNewHighscore();
 		if (m_IsNewHighscore)
@@ -482,7 +482,7 @@ public class GameStateGameOver : GameState
 		m_strRankGlobal = lm.GetLocalizedValue("place of the global leaderboard");
 		m_strRankFriends = lm.GetLocalizedValue("place of the friends board");
 		m_strRankConcat = lm.GetLocalizedValue("and on the");
-		// PORT: textos de compartilhamento nao sao usados (compartilhamento removido).
+		// PORT: sharing texts are not used (sharing removed).
 		m_PlayerRegistered = DataManager.Instance.playerData.highscoreNickname != "" && !string.IsNullOrEmpty(DataManager.Instance.playerData.highscoreNickname);
 		m_Init = true;
 	}
@@ -606,7 +606,7 @@ public class GameStateGameOver : GameState
 		}
 	}
 
-	// Espera a fala comecar (ou timeout) e terminar; opcionalmente liga o foco acessivel quando comecar
+	// Waits for speech to start (or time out) and finish; optionally enables accessible focus when it starts
 	private IEnumerator WaitSpeech(float startTimeOut, bool setTickFocus)
 	{
 		bool startedSpeaking = false;
@@ -971,7 +971,7 @@ public class GameStateGameOver : GameState
 	protected void UsernameSuccess()
 	{
 		m_PlayerRegistered = true;
-		// PORT: CustomAnalyticsTracker.UserSignedUp removido.
+		// PORT: CustomAnalyticsTracker.UserSignedUp removed.
 		DataManager.Instance.UpdateAndGetPlayerServerRanks(CGM.score);
 		usernameInputPanel.SetActive(false);
 		m_TickInputField = false;
@@ -1060,8 +1060,8 @@ public class GameStateGameOver : GameState
 
 	protected void ShowRankPanel(bool fromUsernameSubmit)
 	{
-		// PORT: o painel de ranking so aparece com resposta do servidor online (ranking global/amigos),
-		// que foi removido; este caminho nunca e alcancado offline.
+		// PORT: the rank panel only appears with a response from the online server (global/friends ranking),
+		// which was removed; this path is never reached offline.
 		ShowCongratsOnlyPanel();
 	}
 
@@ -1097,7 +1097,7 @@ public class GameStateGameOver : GameState
 
 	public void ShareBtnClicked()
 	{
-		// PORT: compartilhamento removido (pedido do usuario).
+		// PORT: sharing removed (user request).
 	}
 
 	protected void PopulateSharePopUpAndroid()
@@ -1134,7 +1134,7 @@ public class GameStateGameOver : GameState
 		}
 	}
 
-	// PORT: Esc na tela final (Jogar de novo / Menu principal) volta ao menu principal.
+	// PORT: Esc on the final screen (missions, Play again / Main menu) returns to the main menu.
 	public override bool PortBack()
 	{
 		if (!gameObject.activeSelf)

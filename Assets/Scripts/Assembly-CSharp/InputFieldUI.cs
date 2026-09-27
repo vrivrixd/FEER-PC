@@ -70,7 +70,7 @@ public class InputFieldUI : MonoBehaviour
 
 	protected int GetAndroidKeyboardSize()
 	{
-		// PORT: usa AndroidJavaObject (teclado virtual do Android); sem equivalente no Windows.
+		// PORT: uses AndroidJavaObject (Android on-screen keyboard); no equivalent on Windows.
 		return 0;
 	}
 }

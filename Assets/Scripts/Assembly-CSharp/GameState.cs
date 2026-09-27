@@ -14,7 +14,7 @@ public abstract class GameState : MonoBehaviour
 
 	public abstract void ReceiveInfoMessage(InfoMessage infoMessage, string additionalData);
 
-	// PORT: Esc/Circulo nos menus do PC = voltar. Retorna true se a tela tratou o "voltar".
+	// PORT: Esc/Circle in the PC menus = go back. Returns true if the screen handled "back".
 	public virtual bool PortBack()
 	{
 		return false;

@@ -359,7 +359,7 @@ public class MissionPanelUI : MonoBehaviour
 		SelectHeadline();
 	}
 
-	// Fala o texto e espera comecar (ou 1,5 s) e terminar
+	// Speaks the text and waits for it to start (or 1.5 s) and finish
 	private IEnumerator SayAndWait(string text)
 	{
 		UAP_AccessibilityManager.Say(text, true, true, (UAP_AudioQueue.EInterrupt)0x4f);
@@ -760,7 +760,7 @@ public class MissionPanelUI : MonoBehaviour
 		GameOverAnimationFinished(currentMission);
 	}
 
-	// Anima a barra de progresso (e o numero "faltam") da missao; comum as duas animacoes
+	// Animates the mission progress bar (and the "left" number); shared by both animations
 	private IEnumerator AnimateProgressBar(int missionNumber, bool zeroFinalLeft, string leftSuffix)
 	{
 		Mission mission = Missions[missionNumber];
