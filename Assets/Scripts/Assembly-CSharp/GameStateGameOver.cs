@@ -1141,12 +1141,12 @@ public class GameStateGameOver : GameState
 		{
 			return false;
 		}
-		if (sharePopUpAndroid.activeSelf)
+		if (sharePopUpAndroid.activeInHierarchy)
 		{
 			ShareAndroidCancelBtnClicked();
 			return true;
 		}
-		if (usernameInputPanel.activeSelf || !navPanel.activeSelf || !navPlayBtns.activeSelf)
+		if (usernameInputPanel.activeInHierarchy || !navPanel.activeInHierarchy || !navPlayBtns.activeInHierarchy)
 		{
 			return false;
 		}

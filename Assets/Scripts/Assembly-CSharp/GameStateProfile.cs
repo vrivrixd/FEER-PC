@@ -389,13 +389,13 @@ public class GameStateProfile : GameState
 		{
 			return false;
 		}
-		if (sharePopUpAndroid.activeSelf)
+		if (sharePopUpAndroid.activeInHierarchy)
 		{
 			ShareAndroidCancelBtnClicked();
 		}
-		else if (enterUserNamePanel.activeSelf)
+		else if (enterUserNamePanel.activeInHierarchy)
 		{
-			if (usernameOkBtn.activeSelf)
+			if (usernameOkBtn.activeInHierarchy)
 			{
 				UsernameErrorOKClicked();
 			}

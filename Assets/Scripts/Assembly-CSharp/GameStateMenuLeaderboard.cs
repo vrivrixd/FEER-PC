@@ -638,21 +638,21 @@ public class GameStateMenuLeaderboard : GameState
 		{
 			return false;
 		}
-		if (sharePopUpAndroid.activeSelf)
+		if (sharePopUpAndroid.activeInHierarchy)
 		{
 			ShareAndroidCancelBtnClicked();
 		}
-		else if (connecttionErrorPopUp.activeSelf)
+		else if (connecttionErrorPopUp.activeInHierarchy)
 		{
 			OnConnectionErrorPopUpClosed();
 		}
-		else if (RemoveAFriendPanel.activeSelf)
+		else if (RemoveAFriendPanel.activeInHierarchy)
 		{
 			CancelRemoveFriendClicked();
 		}
-		else if (enterUserNamePanel.activeSelf)
+		else if (enterUserNamePanel.activeInHierarchy)
 		{
-			if (usernameOkBtn.activeSelf)
+			if (usernameOkBtn.activeInHierarchy)
 			{
 				UsernameErrorOKClicked();
 			}

@@ -749,7 +749,7 @@ public class GameStateMenuPowerUp : GameState
 		{
 			return false;
 		}
-		if (previewFactoryPanel.activeSelf)
+		if (previewFactoryPanel.activeInHierarchy)
 		{
 			BackToThemesBtnClicked();
 		}

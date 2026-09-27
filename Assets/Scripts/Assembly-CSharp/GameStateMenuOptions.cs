@@ -570,23 +570,23 @@ public class GameStateMenuOptions : GameState
 		{
 			return false;
 		}
-		if (sharePopUpAndroid.activeSelf)
+		if (sharePopUpAndroid.activeInHierarchy)
 		{
 			ShareAndroidCancelBtnClicked();
 		}
-		else if (confirmResetGamePanel.activeSelf)
+		else if (confirmResetGamePanel.activeInHierarchy)
 		{
 			ConfirmResetNoClicked();
 		}
-		else if (changeLanguagePopUp.activeSelf)
+		else if (changeLanguagePopUp.activeInHierarchy)
 		{
 			ChangeLanguageCancelClicked();
 		}
-		else if (infoPanel.activeSelf)
+		else if (infoPanel.activeInHierarchy)
 		{
 			InfoPanelOKClicked();
 		}
-		else if (powerUpSoundsPanel.activeSelf)
+		else if (powerUpSoundsPanel.activeInHierarchy)
 		{
 			PowerUpSoundsCloseBtnClicked();
 		}

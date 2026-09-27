@@ -116,11 +116,11 @@ public class GameStatePause : GameState
 		{
 			return true;
 		}
-		if (confirmQuitPanel.activeSelf)
+		if (confirmQuitPanel.activeInHierarchy)
 		{
 			ConfirmQuitNoClicked();
 		}
-		else if (confirmRestartPanel.activeSelf)
+		else if (confirmRestartPanel.activeInHierarchy)
 		{
 			ConfirmRestartNoClicked();
 		}
