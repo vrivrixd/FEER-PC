@@ -12,6 +12,8 @@ using UnityEngine;
 //     L1/L2 (LB/LT) = faixa esquerda, R1/R2 (RB/RT) = faixa direita, Options/Share (Start/Back) pausam.
 //   Nos menus: Cruz/Options/touchpad (A/Start) = Enter; Circulo/Share (B/Back) = Esc.
 // "Na corrida" = o plugin de acessibilidade esta pausado (a corrida esta rodando sem menu).
+// Controles PlayStation sao lidos direto pelo HID quando possivel (PortSonyInput): funciona
+// tambem pelo Bluetooth, onde o Windows nao entrega os botoes ao Unity.
 // Vibracao do controle: ver PortRumble.
 //
 // Mouse: arrastar com o botao esquerdo = deslizar; clique sem arrastar = tocar.
@@ -104,6 +106,11 @@ public class PortInput : MonoBehaviour
 		{
 			return 0f;
 		}
+	}
+
+	private void OnApplicationQuit()
+	{
+		PortSonyInput.Shutdown();
 	}
 
 	private void Update()
@@ -225,11 +232,14 @@ public class PortInput : MonoBehaviour
 		return top != null && top.GetName() == GameStateName.PlayGame;
 	}
 
+	// true = controle PlayStation lido direto pelo HID (PortSonyInput); o Unity e ignorado para ele.
+	private static bool s_UseHid;
+
 	private static bool AnyDown(KeyCode[] keys)
 	{
 		foreach (KeyCode k in keys)
 		{
-			if (Input.GetKeyDown(k))
+			if (s_UseHid ? PortSonyInput.WasPressed(k - KeyCode.JoystickButton0) : Input.GetKeyDown(k))
 			{
 				return true;
 			}
@@ -245,9 +255,19 @@ public class PortInput : MonoBehaviour
 	private void UpdateJoystick()
 	{
 		DetectControllerType();
+		PortSonyInput.Poll();
+		s_UseHid = PortSonyInput.Active;
+		if (s_UseHid)
+		{
+			m_Sony = true;
+		}
 		// Unity: Y dos analogicos e positivo para baixo (PortJoyY ja vem invertido); Y do direcional e positivo para cima.
 		Vector2 value = new Vector2(ReadAxis("PortJoyX"), ReadAxis("PortJoyY"));
-		if (m_Sony)
+		if (s_UseHid)
+		{
+			value = Strongest(Strongest(PortSonyInput.LeftStick, PortSonyInput.RightStick), PortSonyInput.Dpad);
+		}
+		else if (m_Sony)
 		{
 			value = Strongest(value, new Vector2(ReadAxis("PortAxis2"), -ReadAxis("PortAxis5")));
 			value = Strongest(value, new Vector2(ReadAxis("PortAxis6"), ReadAxis("PortAxis7")));

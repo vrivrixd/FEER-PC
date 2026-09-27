@@ -100,7 +100,7 @@ public class PortRumble : MonoBehaviour
 	// ------------------------------------------------------------------ XInput
 
 	[StructLayout(LayoutKind.Sequential)]
-	private struct XInputVibration
+	internal struct XInputVibration
 	{
 		public ushort LeftMotorSpeed;
 
@@ -108,7 +108,7 @@ public class PortRumble : MonoBehaviour
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	private struct XInputState
+	internal struct XInputState
 	{
 		public uint PacketNumber;
 
@@ -128,10 +128,10 @@ public class PortRumble : MonoBehaviour
 	}
 
 	[DllImport("xinput1_4.dll", EntryPoint = "XInputGetState")]
-	private static extern uint XInputGetState(uint index, out XInputState state);
+	internal static extern uint XInputGetState(uint index, out XInputState state);
 
 	[DllImport("xinput1_4.dll", EntryPoint = "XInputSetState")]
-	private static extern uint XInputSetState(uint index, ref XInputVibration vibration);
+	internal static extern uint XInputSetState(uint index, ref XInputVibration vibration);
 
 	private static void SetXInput(float strong, float weak)
 	{
@@ -180,11 +180,11 @@ public class PortRumble : MonoBehaviour
 		}
 	}
 
-	private const ushort c_SonyVendor = 0x054C;
+	internal const ushort c_SonyVendor = 0x054C;
 
-	private static readonly ushort[] c_DS4Products = { 0x05C4, 0x09CC, 0x0BA0 };
+	internal static readonly ushort[] c_DS4Products = { 0x05C4, 0x09CC, 0x0BA0 };
 
-	private static readonly ushort[] c_DualSenseProducts = { 0x0CE6, 0x0DF2 };
+	internal static readonly ushort[] c_DualSenseProducts = { 0x0CE6, 0x0DF2 };
 
 	private void SetSony(float strong, float weak)
 	{
@@ -299,19 +299,16 @@ public class PortRumble : MonoBehaviour
 		return crc;
 	}
 
-	private void ScanSonyPads()
+	// Caminhos dos DualShock 4 / DualSense conectados (true = DualSense)
+	internal static List<KeyValuePair<string, bool>> FindSonyPads()
 	{
-		foreach (SonyPad pad in m_SonyPads)
-		{
-			pad.Dispose();
-		}
-		m_SonyPads.Clear();
+		List<KeyValuePair<string, bool>> result = new List<KeyValuePair<string, bool>>();
 		Guid hidGuid;
 		HidD_GetHidGuid(out hidGuid);
 		IntPtr set = SetupDiGetClassDevs(ref hidGuid, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 		if (set == new IntPtr(-1))
 		{
-			return;
+			return result;
 		}
 		try
 		{
@@ -320,12 +317,29 @@ public class PortRumble : MonoBehaviour
 			for (uint index = 0; SetupDiEnumDeviceInterfaces(set, IntPtr.Zero, ref hidGuid, index, ref data); index++)
 			{
 				string path = GetDevicePath(set, ref data);
-				if (path != null)
+				if (path == null)
 				{
-					SonyPad pad = TryOpen(path);
-					if (pad != null)
+					continue;
+				}
+				using (SafeFileHandle probe = CreateFile(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero))
+				{
+					if (probe.IsInvalid)
 					{
-						m_SonyPads.Add(pad);
+						continue;
+					}
+					HIDD_ATTRIBUTES attr = new HIDD_ATTRIBUTES();
+					attr.Size = Marshal.SizeOf(typeof(HIDD_ATTRIBUTES));
+					if (!HidD_GetAttributes(probe, ref attr) || attr.VendorID != c_SonyVendor)
+					{
+						continue;
+					}
+					if (Array.IndexOf(c_DS4Products, attr.ProductID) >= 0)
+					{
+						result.Add(new KeyValuePair<string, bool>(path, false));
+					}
+					else if (Array.IndexOf(c_DualSenseProducts, attr.ProductID) >= 0)
+					{
+						result.Add(new KeyValuePair<string, bool>(path, true));
 					}
 				}
 			}
@@ -334,9 +348,27 @@ public class PortRumble : MonoBehaviour
 		{
 			SetupDiDestroyDeviceInfoList(set);
 		}
+		return result;
 	}
 
-	private static string GetDevicePath(IntPtr set, ref SP_DEVICE_INTERFACE_DATA data)
+	private void ScanSonyPads()
+	{
+		foreach (SonyPad pad in m_SonyPads)
+		{
+			pad.Dispose();
+		}
+		m_SonyPads.Clear();
+		foreach (KeyValuePair<string, bool> found in FindSonyPads())
+		{
+			SonyPad pad = TryOpen(found.Key);
+			if (pad != null)
+			{
+				m_SonyPads.Add(pad);
+			}
+		}
+	}
+
+	internal static string GetDevicePath(IntPtr set, ref SP_DEVICE_INTERFACE_DATA data)
 	{
 		int size;
 		SetupDiGetDeviceInterfaceDetail(set, ref data, IntPtr.Zero, 0, out size, IntPtr.Zero);
@@ -425,24 +457,24 @@ public class PortRumble : MonoBehaviour
 		return pad;
 	}
 
-	private const uint GENERIC_READ = 0x80000000u;
+	internal const uint GENERIC_READ = 0x80000000u;
 
-	private const uint GENERIC_WRITE = 0x40000000u;
+	internal const uint GENERIC_WRITE = 0x40000000u;
 
-	private const uint FILE_SHARE_READ = 1;
+	internal const uint FILE_SHARE_READ = 1;
 
-	private const uint FILE_SHARE_WRITE = 2;
+	internal const uint FILE_SHARE_WRITE = 2;
 
-	private const uint OPEN_EXISTING = 3;
+	internal const uint OPEN_EXISTING = 3;
 
-	private const uint DIGCF_PRESENT = 0x2;
+	internal const uint DIGCF_PRESENT = 0x2;
 
-	private const uint DIGCF_DEVICEINTERFACE = 0x10;
+	internal const uint DIGCF_DEVICEINTERFACE = 0x10;
 
-	private const int HIDP_STATUS_SUCCESS = 0x00110000;
+	internal const int HIDP_STATUS_SUCCESS = 0x00110000;
 
 	[StructLayout(LayoutKind.Sequential)]
-	private struct SP_DEVICE_INTERFACE_DATA
+	internal struct SP_DEVICE_INTERFACE_DATA
 	{
 		public int cbSize;
 
@@ -454,7 +486,7 @@ public class PortRumble : MonoBehaviour
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	private struct HIDD_ATTRIBUTES
+	internal struct HIDD_ATTRIBUTES
 	{
 		public int Size;
 
@@ -466,7 +498,7 @@ public class PortRumble : MonoBehaviour
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
-	private struct HIDP_CAPS
+	internal struct HIDP_CAPS
 	{
 		public ushort Usage;
 
@@ -503,35 +535,35 @@ public class PortRumble : MonoBehaviour
 	}
 
 	[DllImport("hid.dll")]
-	private static extern void HidD_GetHidGuid(out Guid guid);
+	internal static extern void HidD_GetHidGuid(out Guid guid);
 
 	[DllImport("hid.dll")]
-	private static extern bool HidD_GetAttributes(SafeFileHandle device, ref HIDD_ATTRIBUTES attributes);
+	internal static extern bool HidD_GetAttributes(SafeFileHandle device, ref HIDD_ATTRIBUTES attributes);
 
 	[DllImport("hid.dll")]
-	private static extern bool HidD_GetPreparsedData(SafeFileHandle device, out IntPtr preparsed);
+	internal static extern bool HidD_GetPreparsedData(SafeFileHandle device, out IntPtr preparsed);
 
 	[DllImport("hid.dll")]
-	private static extern bool HidD_FreePreparsedData(IntPtr preparsed);
+	internal static extern bool HidD_FreePreparsedData(IntPtr preparsed);
 
 	[DllImport("hid.dll")]
-	private static extern int HidP_GetCaps(IntPtr preparsed, out HIDP_CAPS caps);
+	internal static extern int HidP_GetCaps(IntPtr preparsed, out HIDP_CAPS caps);
 
 	[DllImport("setupapi.dll", CharSet = CharSet.Unicode)]
-	private static extern IntPtr SetupDiGetClassDevs(ref Guid classGuid, IntPtr enumerator, IntPtr parent, uint flags);
+	internal static extern IntPtr SetupDiGetClassDevs(ref Guid classGuid, IntPtr enumerator, IntPtr parent, uint flags);
 
 	[DllImport("setupapi.dll")]
-	private static extern bool SetupDiEnumDeviceInterfaces(IntPtr set, IntPtr devInfo, ref Guid classGuid, uint index, ref SP_DEVICE_INTERFACE_DATA data);
+	internal static extern bool SetupDiEnumDeviceInterfaces(IntPtr set, IntPtr devInfo, ref Guid classGuid, uint index, ref SP_DEVICE_INTERFACE_DATA data);
 
 	[DllImport("setupapi.dll", CharSet = CharSet.Unicode)]
-	private static extern bool SetupDiGetDeviceInterfaceDetail(IntPtr set, ref SP_DEVICE_INTERFACE_DATA data, IntPtr detail, int detailSize, out int requiredSize, IntPtr devInfo);
+	internal static extern bool SetupDiGetDeviceInterfaceDetail(IntPtr set, ref SP_DEVICE_INTERFACE_DATA data, IntPtr detail, int detailSize, out int requiredSize, IntPtr devInfo);
 
 	[DllImport("setupapi.dll")]
-	private static extern bool SetupDiDestroyDeviceInfoList(IntPtr set);
+	internal static extern bool SetupDiDestroyDeviceInfoList(IntPtr set);
 
 	[DllImport("kernel32.dll", SetLastError = true)]
-	private static extern bool WriteFile(SafeFileHandle file, byte[] buffer, uint count, out uint written, IntPtr overlapped);
+	internal static extern bool WriteFile(SafeFileHandle file, byte[] buffer, uint count, out uint written, IntPtr overlapped);
 
 	[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-	private static extern SafeFileHandle CreateFile(string name, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);
+	internal static extern SafeFileHandle CreateFile(string name, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);
 }
