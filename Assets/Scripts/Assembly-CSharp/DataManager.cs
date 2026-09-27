@@ -826,6 +826,7 @@ public class DataManager : MonoBehaviour
 			m_PlayerData.useReverseUpDown = false;
 			m_PlayerData.useCenterLaneOrientation = false;
 			m_PlayerData.useVibration = true;
+			m_PlayerData.portPowerUpCountdown = true;
 			m_PlayerData.showAppRateDialog = true;
 			m_PlayerData.lastRewardedMissionNumber = -1;
 			SavePlayerData();
@@ -1537,6 +1538,16 @@ public class DataManager : MonoBehaviour
 		if (m_PlayerData.useVibration != enabled)
 		{
 			m_PlayerData.useVibration = enabled;
+			SavePlayerData();
+		}
+	}
+
+	// PORT: settings menu option (PortPowerUpCountdown)
+	public void UsePowerUpCountdown(bool enabled)
+	{
+		if (m_PlayerData.portPowerUpCountdown != enabled)
+		{
+			m_PlayerData.portPowerUpCountdown = enabled;
 			SavePlayerData();
 		}
 	}

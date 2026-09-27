@@ -13,6 +13,7 @@ using UnityEngine;
 //     L1/L2 (LB/LT) = left lane, R1/R2 (RB/RT) = right lane, Options/Share (Start/Back) pause.
 //   In menus: Cross/Options/touchpad (A/Start) = Enter; Circle/Share (B/Back) = Esc.
 //   In the pause menu: Options/Share (Start/Back) resume the game, like Esc.
+//   During the run: L3 says the score, R3 says the lights (keyboard: S and L). See PortStatus.
 // "During the run" = PlayGame state with the accessibility plugin paused (no menu shown).
 // PlayStation gamepads are read directly through HID when possible (PortSonyInput): this also
 // works over Bluetooth, where Windows does not deliver the buttons to Unity.
@@ -198,6 +199,10 @@ public class PortInput : MonoBehaviour
 		public KeyCode[] Submit;    // menus: Enter
 
 		public KeyCode[] Cancel;    // menus: Esc
+
+		public KeyCode[] Score;     // run: say the score (= S)
+
+		public KeyCode[] Lights;    // run: say the lights (= L)
 	}
 
 	private static readonly Layout c_Xbox = new Layout
@@ -209,7 +214,9 @@ public class PortInput : MonoBehaviour
 		Right = new[] { KeyCode.JoystickButton5 },
 		Pause = new[] { KeyCode.JoystickButton6, KeyCode.JoystickButton7 },
 		Submit = new[] { KeyCode.JoystickButton0, KeyCode.JoystickButton7 },
-		Cancel = new[] { KeyCode.JoystickButton1, KeyCode.JoystickButton6 }
+		Cancel = new[] { KeyCode.JoystickButton1, KeyCode.JoystickButton6 },
+		Score = new[] { KeyCode.JoystickButton8 },
+		Lights = new[] { KeyCode.JoystickButton9 }
 	};
 
 	private static readonly Layout c_Sony = new Layout
@@ -221,42 +228,68 @@ public class PortInput : MonoBehaviour
 		Right = new[] { KeyCode.JoystickButton5, KeyCode.JoystickButton7 },
 		Pause = new[] { KeyCode.JoystickButton8, KeyCode.JoystickButton9 },
 		Submit = new[] { KeyCode.JoystickButton1, KeyCode.JoystickButton9, KeyCode.JoystickButton13 },
-		Cancel = new[] { KeyCode.JoystickButton2, KeyCode.JoystickButton8 }
+		Cancel = new[] { KeyCode.JoystickButton2, KeyCode.JoystickButton8 },
+		Score = new[] { KeyCode.JoystickButton10 },
+		Lights = new[] { KeyCode.JoystickButton11 }
 	};
 
 	private bool m_LeftTriggerDown;
 
 	private bool m_RightTriggerDown;
 
-	private string m_LastJoystickName;
+	private static string s_LastJoystickName;
 
-	private bool m_Sony;
+	private static bool s_Sony;
 
-	private float m_NextNameCheck;
+	private static bool s_Connected;
+
+	private static float s_NextNameCheck = -1f;
+
+	// A gamepad is connected: on-screen/spoken instructions name its buttons instead of keys.
+	public static bool GamepadConnected
+	{
+		get
+		{
+			DetectControllerType();
+			return s_Connected || PortSonyInput.Active;
+		}
+	}
+
+	// The connected gamepad uses the PlayStation layout (Cross, Circle, Options...)
+	public static bool SonyGamepad
+	{
+		get
+		{
+			DetectControllerType();
+			return s_Sony || PortSonyInput.Active;
+		}
+	}
 
 	// DualShock 4 and DualSense without an emulator show up as "Wireless Controller" (DirectInput);
 	// any other gamepad uses the Xbox layout (XInput), including DS4Windows/Steam.
-	private void DetectControllerType()
+	private static void DetectControllerType()
 	{
-		if (Time.unscaledTime < m_NextNameCheck)
+		if (s_NextNameCheck >= 0f && Time.unscaledTime < s_NextNameCheck)
 		{
 			return;
 		}
-		m_NextNameCheck = Time.unscaledTime + 2f;
-		m_Sony = false;
+		s_NextNameCheck = Time.unscaledTime + 2f;
+		s_Sony = false;
+		s_Connected = false;
 		foreach (string name in Input.GetJoystickNames())
 		{
 			if (string.IsNullOrEmpty(name))
 			{
 				continue;
 			}
-			if (name != m_LastJoystickName)
+			if (name != s_LastJoystickName)
 			{
-				m_LastJoystickName = name;
+				s_LastJoystickName = name;
 				Debug.Log("[PortInput] Gamepad: " + name);
 			}
 			string n = name.ToLowerInvariant();
-			m_Sony = !n.Contains("xbox") && !n.Contains("xinput") && (n.Contains("wireless controller") || n.Contains("dualsense") || n.Contains("dualshock") || n.Contains("sony") || n.Contains("playstation"));
+			s_Sony = !n.Contains("xbox") && !n.Contains("xinput") && (n.Contains("wireless controller") || n.Contains("dualsense") || n.Contains("dualshock") || n.Contains("sony") || n.Contains("playstation"));
+			s_Connected = true;
 			break;
 		}
 	}
@@ -300,7 +333,7 @@ public class PortInput : MonoBehaviour
 		s_UseHid = PortSonyInput.Active;
 		if (s_UseHid)
 		{
-			m_Sony = true;
+			s_Sony = true;
 		}
 		// Unity: stick Y is positive downwards (PortJoyY is already inverted); d-pad Y is positive upwards.
 		Vector2 value = new Vector2(ReadAxis("PortJoyX"), ReadAxis("PortJoyY"));
@@ -308,7 +341,7 @@ public class PortInput : MonoBehaviour
 		{
 			value = Strongest(Strongest(PortSonyInput.LeftStick, PortSonyInput.RightStick), PortSonyInput.Dpad);
 		}
-		else if (m_Sony)
+		else if (s_Sony)
 		{
 			value = Strongest(value, new Vector2(ReadAxis("PortAxis2"), -ReadAxis("PortAxis5")));
 			value = Strongest(value, new Vector2(ReadAxis("PortAxis6"), ReadAxis("PortAxis7")));
@@ -349,11 +382,11 @@ public class PortInput : MonoBehaviour
 		{
 			m_StickLast = Vector2.zero;
 		}
-		Layout layout = m_Sony ? c_Sony : c_Xbox;
+		Layout layout = s_Sony ? c_Sony : c_Xbox;
 		// Xbox triggers are axes: generate a press when they pass the halfway point
 		bool leftTrigger = false;
 		bool rightTrigger = false;
-		if (!m_Sony)
+		if (!s_Sony)
 		{
 			bool lt = ReadAxis("PortAxis8") > 0.5f;
 			bool rt = ReadAxis("PortAxis9") > 0.5f;
@@ -388,6 +421,14 @@ public class PortInput : MonoBehaviour
 			if (AnyDown(layout.Pause))
 			{
 				s_PauseToggle = true;
+			}
+			if (AnyDown(layout.Score) || Input.GetKeyDown(KeyCode.S))
+			{
+				PortStatus.SayScore();
+			}
+			if (AnyDown(layout.Lights) || Input.GetKeyDown(KeyCode.L))
+			{
+				PortStatus.SayLights();
 			}
 		}
 		else if (IsPauseMenu() && AnyDown(layout.Pause))

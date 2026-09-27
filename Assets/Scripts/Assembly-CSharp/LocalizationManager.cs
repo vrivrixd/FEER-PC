@@ -125,11 +125,49 @@ public class LocalizationManager : MonoBehaviour
 
 	public string GetLocalizedValue(string key)
 	{
+		// PORT: the touch instructions ("tap", "swipe"...) have PC versions in the localization files:
+		// "port_pad:<key>" when a gamepad is connected, "port_kb:<key>" otherwise (also the fallback).
+		if (key.Length > 0 && m_LocalizedText != null)
+		{
+			string port;
+			if ((PortInput.GamepadConnected && m_LocalizedText.TryGetValue("port_pad:" + key, out port)) || m_LocalizedText.TryGetValue("port_kb:" + key, out port))
+			{
+				return PortFillButtonNames(port);
+			}
+		}
 		if (key.Length > 0 && m_LocalizedText.ContainsKey(key) && m_LocalizedText[key] != null)
 		{
 			return m_LocalizedText[key];
 		}
 		return key;
+	}
+
+	// PORT: {pause}, {confirm}, {back}, {jump}, {slide}, {left}, {right} = key or gamepad button (see PortInput)
+	private string PortFillButtonNames(string text)
+	{
+		if (text.IndexOf('{') < 0)
+		{
+			return text;
+		}
+		bool pad = PortInput.GamepadConnected;
+		bool sony = pad && PortInput.SonyGamepad;
+		string escape = PortName("port_key_escape");
+		string cross = sony ? PortName("port_pad_cross") : "A";
+		string circle = sony ? PortName("port_pad_circle") : "B";
+		return text
+			.Replace("{pause}", pad ? (sony ? "Options" : "Start") : escape)
+			.Replace("{confirm}", pad ? cross : PortName("port_key_enter"))
+			.Replace("{back}", pad ? circle : escape)
+			.Replace("{jump}", cross)
+			.Replace("{slide}", circle)
+			.Replace("{left}", sony ? "L1" : "LB")
+			.Replace("{right}", sony ? "R1" : "RB");
+	}
+
+	private string PortName(string key)
+	{
+		string value;
+		return m_LocalizedText.TryGetValue(key, out value) ? value : key;
 	}
 
 	public string GetLongLanguageCode()

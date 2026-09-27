@@ -287,6 +287,7 @@ public class GameStateMenuOptions : GameState
 		{
 			SetToggleImage(voiceOverImage, true);
 		}
+		PortCreatePowerUpCountdownToggle(playerData);
 		m_SettingsBtnText = settingsBtn.GetComponentInChildren<Text>();
 		m_HelpBtnText = helpBtn.GetComponentInChildren<Text>();
 		m_ContactBtnText = contactBtn.GetComponentInChildren<Text>();
@@ -347,6 +348,45 @@ public class GameStateMenuOptions : GameState
 	{
 		DataManager.Instance.UseVibration(selected);
 		ToggleClicked(vibrationImage, selected);
+	}
+
+	// PORT: "power-up countdown" option, a copy of the vibration toggle placed below it
+	// (the scene has no room for it; the accessibility plugin reads it after VIBRATION).
+	protected Image m_PortPowerUpCountdownImage;
+
+	private void PortCreatePowerUpCountdownToggle(PlayerData_v_1_1_3 playerData)
+	{
+		GameObject go = Object.Instantiate(vibrationToggle.gameObject, vibrationToggle.transform.parent, false);
+		go.name = "PortPowerUpCountdownToggle";
+		RectTransform rect = (RectTransform)go.transform;
+		RectTransform source = (RectTransform)vibrationToggle.transform;
+		float height = source.anchorMax.y - source.anchorMin.y;
+		rect.anchorMin = new Vector2(source.anchorMin.x, source.anchorMin.y - height);
+		rect.anchorMax = new Vector2(source.anchorMax.x, source.anchorMin.y);
+		Toggle toggle = go.GetComponent<Toggle>();
+		// The copy also carries the vibration callback set in the scene
+		toggle.onValueChanged = new Toggle.ToggleEvent();
+		toggle.isOn = playerData.portPowerUpCountdown;
+		Transform label = go.transform.Find("Label");
+		LocalizedTextUI localized = label.GetComponent<LocalizedTextUI>();
+		if (localized != null)
+		{
+			Object.DestroyImmediate(localized);
+		}
+		label.GetComponent<Text>().text = LocalizationManager.Instance.GetLocalizedValue("port_powerup_countdown");
+		m_PortPowerUpCountdownImage = go.transform.Find("Background").GetComponent<Image>();
+		SetToggleImage(m_PortPowerUpCountdownImage, toggle.isOn);
+		AccessibleToggle accessible = go.GetComponent<AccessibleToggle>();
+		accessible.m_Text = "port_powerup_countdown";
+		accessible.m_IsLocalizationKey = true;
+		accessible.m_ManualPositionOrder = vibrationToggle.GetComponent<AccessibleToggle>().m_ManualPositionOrder + 1;
+		toggle.onValueChanged.AddListener(ValueChangedPowerUpCountdown);
+	}
+
+	public void ValueChangedPowerUpCountdown(bool selected)
+	{
+		DataManager.Instance.UsePowerUpCountdown(selected);
+		ToggleClicked(m_PortPowerUpCountdownImage, selected);
 	}
 
 	public void ValueChangedVoiceOver(bool selected)

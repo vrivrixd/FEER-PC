@@ -319,6 +319,40 @@ public class TrackManager : MonoBehaviour
 		m_UsingPowerUp = false;
 	}
 
+	// PORT: seconds until the active power-up ends, -1 without one (for PortPowerUpCountdown).
+	// Shield, weapon and light doubler end at a distance, at the current speed.
+	// The boost speeds up and slows down linearly over the distance (see Update), so its time is integrated
+	// up to the point where the player gets control back.
+	private float PortPowerUpTimeLeft()
+	{
+		if (m_Boosting)
+		{
+			const int steps = 40;
+			float from = m_TotalWorldDistance;
+			float to = m_BoostSlowedDownAt;
+			if (to <= from)
+			{
+				return 0f;
+			}
+			float step = (to - from) / steps;
+			float time = 0f;
+			for (int i = 0; i < steps; i++)
+			{
+				float d = from + (i + 0.5f) * step;
+				float v = (d < m_BoostSlowDownAt)
+					? Mathf.Min(m_BoostSpeed, m_SpeedBeforeBoosting + (d - m_BoostStartAt) / m_BoostDistanceFactor * m_BoostSpeedFactor)
+					: Mathf.Max(m_SpeedBeforeBoosting, m_BoostSpeed - (d - m_BoostSlowDownAt) / m_BoostDistanceFactor * m_BoostSpeedFactor);
+				time += step / Mathf.Max(v, 0.1f);
+			}
+			return time;
+		}
+		if (m_UsingPowerUp)
+		{
+			return Mathf.Max(0f, m_PowerUpEndAt - m_TotalWorldDistance) / Mathf.Max(m_Speed, 0.1f);
+		}
+		return -1f;
+	}
+
 	protected void LoadLevels()
 	{
 		int currentMissionLevel = m_CurrentMissionLevel;
@@ -768,6 +802,7 @@ public class TrackManager : MonoBehaviour
 				CustomGameManager.Instance.IncreaseScore(scoreToAdd);
 			}
 		}
+		PortPowerUpCountdown.Tick(PortPowerUpTimeLeft());
 		if (!m_Boosting)
 		{
 			if (m_UsingPowerUp && m_PowerUpEndAt <= m_TotalWorldDistance)

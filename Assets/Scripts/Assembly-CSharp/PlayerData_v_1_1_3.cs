@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 [Serializable]
@@ -73,4 +74,15 @@ public class PlayerData_v_1_1_3
 	public int weaponDistance;
 
 	public int lastRewardedMissionNumber;
+
+	// PORT: countdown before the power-up ends (PortPowerUpCountdown). Missing in saves from the
+	// original game and older port versions: on by default.
+	[OptionalField]
+	public bool portPowerUpCountdown = true;
+
+	[OnDeserializing]
+	private void PortOnDeserializing(StreamingContext context)
+	{
+		portPowerUpCountdown = true;
+	}
 }
