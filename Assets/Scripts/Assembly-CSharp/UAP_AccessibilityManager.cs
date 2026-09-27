@@ -360,6 +360,12 @@ public class UAP_AccessibilityManager : MonoBehaviour
 	}
 
 	// PORT: gesto de pausa (toque duplo com dois dedos) acionado por tecla/joystick no PC
+	// PORT: true enquanto um elemento (ex.: campo de texto) esta sendo editado; o Esc cancela a edicao.
+	public static bool PortIsInteracting()
+	{
+		return instance != null && (instance.m_CurrentElementHasSoleFocus || UAP_VirtualKeyboard.IsOpen());
+	}
+
 	public static void PortTriggerPauseToggle()
 	{
 		if (instance == null || !instance.m_HandleMagicGestures)

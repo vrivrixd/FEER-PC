@@ -21,12 +21,16 @@ public class GameStatePause : GameState
 
 	protected bool m_Init;
 
+	// PORT: evita retomar duas vezes (a troca de estado so acontece 0,5 s depois do clique)
+	private bool m_Resuming;
+
 	public override void Enter(GameState from)
 	{
 		if (!m_Init)
 		{
 			Init();
 		}
+		m_Resuming = false;
 		MissionManager.Instance.UpdateProgress();
 		confirmPanel.SetActive(false);
 		confirmQuitPanel.SetActive(false);
@@ -102,10 +106,34 @@ public class GameStatePause : GameState
 
 	public void ResumeBtnClicked()
 	{
-		if (gameObject.activeSelf)
+		if (gameObject.activeSelf && !m_Resuming)
 		{
+			m_Resuming = true;
 			StartCoroutine(SwitchState(GameStateName.PlayGame));
 		}
+	}
+
+	// PORT: no PC o Esc/Circulo no menu de pausa continua o jogo (no original so o botao Continuar).
+	// Com uma confirmacao aberta, o Esc cancela a confirmacao.
+	public override bool PortBack()
+	{
+		if (!gameObject.activeSelf || m_Resuming)
+		{
+			return true;
+		}
+		if (confirmQuitPanel.activeSelf)
+		{
+			ConfirmQuitNoClicked();
+		}
+		else if (confirmRestartPanel.activeSelf)
+		{
+			ConfirmRestartNoClicked();
+		}
+		else
+		{
+			ResumeBtnClicked();
+		}
+		return true;
 	}
 
 	public void QuitBtnClicked()

@@ -383,6 +383,34 @@ public class GameStateProfile : GameState
 		CustomGameManager.Instance.SwitchState(toState);
 	}
 
+	public override bool PortBack()
+	{
+		if (!gameObject.activeSelf)
+		{
+			return false;
+		}
+		if (sharePopUpAndroid.activeSelf)
+		{
+			ShareAndroidCancelBtnClicked();
+		}
+		else if (enterUserNamePanel.activeSelf)
+		{
+			if (usernameOkBtn.activeSelf)
+			{
+				UsernameErrorOKClicked();
+			}
+			else
+			{
+				UsernameCancelBtnClicked();
+			}
+		}
+		else
+		{
+			MainMenuBtnClicked();
+		}
+		return true;
+	}
+
 	public void MainMenuBtnClicked()
 	{
 		if (gameObject.activeSelf)

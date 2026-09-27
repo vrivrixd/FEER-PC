@@ -564,6 +564,39 @@ public class GameStateMenuOptions : GameState
 	{
 	}
 
+	public override bool PortBack()
+	{
+		if (!gameObject.activeSelf)
+		{
+			return false;
+		}
+		if (sharePopUpAndroid.activeSelf)
+		{
+			ShareAndroidCancelBtnClicked();
+		}
+		else if (confirmResetGamePanel.activeSelf)
+		{
+			ConfirmResetNoClicked();
+		}
+		else if (changeLanguagePopUp.activeSelf)
+		{
+			ChangeLanguageCancelClicked();
+		}
+		else if (infoPanel.activeSelf)
+		{
+			InfoPanelOKClicked();
+		}
+		else if (powerUpSoundsPanel.activeSelf)
+		{
+			PowerUpSoundsCloseBtnClicked();
+		}
+		else
+		{
+			BackBtnClicked();
+		}
+		return true;
+	}
+
 	public void BackBtnClicked()
 	{
 		StartCoroutine(SwitchState(GameStateName.Menu));

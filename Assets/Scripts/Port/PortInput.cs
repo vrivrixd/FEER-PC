@@ -4,6 +4,7 @@ using UnityEngine;
 //
 // Teclado (ja existia no codigo original): setas = deslizar, Espaco = tocar (atirar).
 // Esc = gesto de pausa (toque duplo com dois dedos): pausa o jogo ou pula o tutorial.
+// PORT: nos menus o Esc volta a tela anterior (GameState.PortBack); no menu de pausa, continua o jogo.
 // Nos menus o plugin de acessibilidade usa as setas, Enter e Esc (padrao do UAP no Windows).
 //
 // Joystick (Xbox/XInput e PlayStation DualShock 4/DualSense, detectado pelo nome):
@@ -108,6 +109,22 @@ public class PortInput : MonoBehaviour
 		}
 	}
 
+	private const float c_EscRepeatDelay = 0.35f;
+
+	private float m_NextEscTime;
+
+	private static bool TryBack()
+	{
+		// Editando um campo: o Esc so cancela a edicao (tratado pelo plugin de acessibilidade)
+		if (UAP_AccessibilityManager.PortIsInteracting())
+		{
+			return true;
+		}
+		CustomGameManager cgm = CustomGameManager.Instance;
+		GameState top = (cgm != null) ? cgm.topState : null;
+		return top != null && top.PortBack();
+	}
+
 	private void OnApplicationQuit()
 	{
 		PortSonyInput.Shutdown();
@@ -129,10 +146,17 @@ public class PortInput : MonoBehaviour
 		s_PauseToggle = false;
 		UpdateJoystick();
 		UpdateMouse();
-		// Esc do teclado ou do controle: gesto de pausa
-		if (Input.GetKeyDown(KeyCode.Escape) || s_Cancel || s_PauseToggle)
+		// Esc do teclado ou do controle: nos menus volta a tela anterior; senao, gesto de pausa.
+		// Intervalo minimo entre dois Esc: o mesmo aperto pode chegar duas vezes (controle + teclado
+		// simulado pelo Steam), o que fazia o jogo retomar e pausar de novo.
+		bool esc = Input.GetKeyDown(KeyCode.Escape) || s_Cancel;
+		if ((esc || s_PauseToggle) && Time.unscaledTime >= m_NextEscTime)
 		{
-			UAP_AccessibilityManager.PortTriggerPauseToggle();
+			m_NextEscTime = Time.unscaledTime + c_EscRepeatDelay;
+			if (!(esc && !IsRunning() && TryBack()))
+			{
+				UAP_AccessibilityManager.PortTriggerPauseToggle();
+			}
 		}
 	}
 

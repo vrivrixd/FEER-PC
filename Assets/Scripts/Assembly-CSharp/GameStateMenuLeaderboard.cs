@@ -632,6 +632,42 @@ public class GameStateMenuLeaderboard : GameState
 		RemoveAFriendPanel.SetActive(false);
 	}
 
+	public override bool PortBack()
+	{
+		if (!gameObject.activeSelf)
+		{
+			return false;
+		}
+		if (sharePopUpAndroid.activeSelf)
+		{
+			ShareAndroidCancelBtnClicked();
+		}
+		else if (connecttionErrorPopUp.activeSelf)
+		{
+			OnConnectionErrorPopUpClosed();
+		}
+		else if (RemoveAFriendPanel.activeSelf)
+		{
+			CancelRemoveFriendClicked();
+		}
+		else if (enterUserNamePanel.activeSelf)
+		{
+			if (usernameOkBtn.activeSelf)
+			{
+				UsernameErrorOKClicked();
+			}
+			else
+			{
+				UsernameCancelBtnClicked();
+			}
+		}
+		else
+		{
+			MenuBtnClicked();
+		}
+		return true;
+	}
+
 	public void MenuBtnClicked()
 	{
 		if (gameObject.activeSelf)

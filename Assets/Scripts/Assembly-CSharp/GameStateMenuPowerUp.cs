@@ -743,6 +743,23 @@ public class GameStateMenuPowerUp : GameState
 	{
 	}
 
+	public override bool PortBack()
+	{
+		if (!gameObject.activeSelf)
+		{
+			return false;
+		}
+		if (previewFactoryPanel.activeSelf)
+		{
+			BackToThemesBtnClicked();
+		}
+		else
+		{
+			MenuBtnClicked();
+		}
+		return true;
+	}
+
 	public void MenuBtnClicked()
 	{
 		if (gameObject.activeSelf)
