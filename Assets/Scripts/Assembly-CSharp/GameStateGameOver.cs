@@ -1134,6 +1134,26 @@ public class GameStateGameOver : GameState
 		}
 	}
 
+	// PORT: Esc na tela final (Jogar de novo / Menu principal) volta ao menu principal.
+	public override bool PortBack()
+	{
+		if (!gameObject.activeSelf)
+		{
+			return false;
+		}
+		if (sharePopUpAndroid.activeSelf)
+		{
+			ShareAndroidCancelBtnClicked();
+			return true;
+		}
+		if (usernameInputPanel.activeSelf || !navPanel.activeSelf || !navPlayBtns.activeSelf)
+		{
+			return false;
+		}
+		BackToMainMenuBtnClicked();
+		return true;
+	}
+
 	public void BackToMainMenuBtnClicked()
 	{
 		MissionManager.Instance.ResetProgress();

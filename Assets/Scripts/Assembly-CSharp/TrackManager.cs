@@ -397,8 +397,16 @@ public class TrackManager : MonoBehaviour
 		}
 	}
 
+	// PORT: evita pausar duas vezes (a segunda guardaria m_IsRunning = false e a pista nao voltaria)
+	private bool m_PortTutorialPaused;
+
 	public void TutorialPaused(bool paused)
 	{
+		if (paused == m_PortTutorialPaused)
+		{
+			return;
+		}
+		m_PortTutorialPaused = paused;
 		if (paused)
 		{
 			m_TutorialRunningBeforePaused = m_IsRunning;
@@ -414,6 +422,7 @@ public class TrackManager : MonoBehaviour
 
 	public void StartTutorial()
 	{
+		m_PortTutorialPaused = false;
 		m_Speed = 4f;
 		CustomGameManager.Instance.SetSpeed(m_Speed);
 		m_Tutorial = true;
@@ -530,6 +539,7 @@ public class TrackManager : MonoBehaviour
 
 	public void StartNewGame()
 	{
+		m_PortTutorialPaused = false;
 		m_Tutorial = false;
 		m_DarkenAt = CustomGameManager.Instance.metersTillDarken;
 		fog.UnpauseFog(true);
