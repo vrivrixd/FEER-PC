@@ -12,6 +12,7 @@ using UnityEngine;
 //   Na corrida: Cruz (A) pula, Circulo (B) agacha, Triangulo/Quadrado/touchpad (X/Y) atiram,
 //     L1/L2 (LB/LT) = faixa esquerda, R1/R2 (RB/RT) = faixa direita, Options/Share (Start/Back) pausam.
 //   Nos menus: Cruz/Options/touchpad (A/Start) = Enter; Circulo/Share (B/Back) = Esc.
+//   No menu de pausa: Options/Share (Start/Back) continuam o jogo, como o Esc.
 // "Na corrida" = o plugin de acessibilidade esta pausado (a corrida esta rodando sem menu).
 // Controles PlayStation sao lidos direto pelo HID quando possivel (PortSonyInput): funciona
 // tambem pelo Bluetooth, onde o Windows nao entrega os botoes ao Unity.
@@ -109,9 +110,16 @@ public class PortInput : MonoBehaviour
 		}
 	}
 
-	private const float c_EscRepeatDelay = 0.35f;
+	private const float c_SteamEchoWindow = 0.3f;
 
-	private float m_NextEscTime;
+	private float m_LastPadEscTime = -10f;
+
+	private static bool IsPauseMenu()
+	{
+		CustomGameManager cgm = CustomGameManager.Instance;
+		GameState top = (cgm != null) ? cgm.topState : null;
+		return top != null && top.GetName() == GameStateName.Pause;
+	}
 
 	private static bool TryBack()
 	{
@@ -147,12 +155,22 @@ public class PortInput : MonoBehaviour
 		UpdateJoystick();
 		UpdateMouse();
 		// Esc do teclado ou do controle: nos menus volta a tela anterior; senao, gesto de pausa.
-		// Intervalo minimo entre dois Esc: o mesmo aperto pode chegar duas vezes (controle + teclado
-		// simulado pelo Steam), o que fazia o jogo retomar e pausar de novo.
-		bool esc = Input.GetKeyDown(KeyCode.Escape) || s_Cancel;
-		if ((esc || s_PauseToggle) && Time.unscaledTime >= m_NextEscTime)
+		// O Steam (configuracao de desktop) tambem transforma botoes do controle em teclas: o mesmo
+		// aperto chegava como botao e, um instante depois, como Esc do teclado, pausando de novo.
+		// Por isso o Esc do teclado logo apos um botao de pausa/voltar do controle e ignorado.
+		bool keyboardEsc = Input.GetKeyDown(KeyCode.Escape);
+		if (keyboardEsc && Time.unscaledTime - m_LastPadEscTime < c_SteamEchoWindow)
 		{
-			m_NextEscTime = Time.unscaledTime + c_EscRepeatDelay;
+			Debug.Log("[PortInput] Esc do teclado ignorado (eco do controle)");
+			keyboardEsc = false;
+		}
+		if (s_Cancel || s_PauseToggle)
+		{
+			m_LastPadEscTime = Time.unscaledTime;
+		}
+		bool esc = keyboardEsc || s_Cancel;
+		if (esc || s_PauseToggle)
+		{
 			if (!(esc && !IsRunning() && TryBack()))
 			{
 				UAP_AccessibilityManager.PortTriggerPauseToggle();
@@ -372,6 +390,11 @@ public class PortInput : MonoBehaviour
 			{
 				s_PauseToggle = true;
 			}
+		}
+		else if (IsPauseMenu() && AnyDown(layout.Pause))
+		{
+			// Menu de pausa: Start/Options (e Share/Back) continuam o jogo, como o Esc
+			s_Cancel = true;
 		}
 		else
 		{

@@ -21,16 +21,12 @@ public class GameStatePause : GameState
 
 	protected bool m_Init;
 
-	// PORT: evita retomar duas vezes (a troca de estado so acontece 0,5 s depois do clique)
-	private bool m_Resuming;
-
 	public override void Enter(GameState from)
 	{
 		if (!m_Init)
 		{
 			Init();
 		}
-		m_Resuming = false;
 		MissionManager.Instance.UpdateProgress();
 		confirmPanel.SetActive(false);
 		confirmQuitPanel.SetActive(false);
@@ -106,9 +102,8 @@ public class GameStatePause : GameState
 
 	public void ResumeBtnClicked()
 	{
-		if (gameObject.activeSelf && !m_Resuming)
+		if (gameObject.activeSelf)
 		{
-			m_Resuming = true;
 			StartCoroutine(SwitchState(GameStateName.PlayGame));
 		}
 	}
@@ -117,7 +112,7 @@ public class GameStatePause : GameState
 	// Com uma confirmacao aberta, o Esc cancela a confirmacao.
 	public override bool PortBack()
 	{
-		if (!gameObject.activeSelf || m_Resuming)
+		if (!gameObject.activeSelf)
 		{
 			return true;
 		}

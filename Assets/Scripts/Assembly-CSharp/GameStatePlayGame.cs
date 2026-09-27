@@ -309,11 +309,6 @@ public class GameStatePlayGame : GameState
 
 	public void PauseBtnClicked()
 	{
-		// PORT: ignora o gesto de pausa durante a contagem de retomada (evita pausar logo ao continuar)
-		if (m_Status == GameStateStatus.Resume)
-		{
-			return;
-		}
 		CustomGameManager.Instance.SwitchState(GameStateName.Pause);
 	}
 
