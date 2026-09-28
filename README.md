@@ -8,7 +8,7 @@ An unofficial Windows port of **FEER – The Game of Running Blind**, the access
 
 FEER won Best Game 2018 from AppleVis and the Futurezone Award. It was one of the first endless runners designed for blind and visually impaired players and sighted players alike. MENTAL HOME still presents the game on its [website](https://www.mentalhome.eu/feer/). The Android version linked from that page is no longer on Google Play (the store link returns "not found"). Without that download, the game would slowly disappear for the Android players who loved it.
 
-This project exists to **keep the memory of the game alive**: to preserve it and keep it playable on a PC for personal use. It is a private repository and is not meant for distribution or sale. If MENTAL HOME makes the game available again, or asks for this repository to be removed, their wishes come first. Please support the original creators.
+This project exists to **keep the memory of the game alive**, to preserve it and keep it playable on a PC. Please support the original creators.
 
 ## What this is
 
