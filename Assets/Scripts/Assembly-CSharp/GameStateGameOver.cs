@@ -482,7 +482,6 @@ public class GameStateGameOver : GameState
 		m_strRankGlobal = lm.GetLocalizedValue("place of the global leaderboard");
 		m_strRankFriends = lm.GetLocalizedValue("place of the friends board");
 		m_strRankConcat = lm.GetLocalizedValue("and on the");
-		// PORT: sharing texts are not used (sharing removed).
 		m_PlayerRegistered = DataManager.Instance.playerData.highscoreNickname != "" && !string.IsNullOrEmpty(DataManager.Instance.playerData.highscoreNickname);
 		m_Init = true;
 	}
@@ -1097,7 +1096,8 @@ public class GameStateGameOver : GameState
 
 	public void ShareBtnClicked()
 	{
-		// PORT: sharing removed (user request).
+		// PORT: the Android share dialog is replaced by copying the results to the clipboard.
+		PortShare.CopyRunResult(CGM.score, m_IsNewHighscore);
 	}
 
 	protected void PopulateSharePopUpAndroid()

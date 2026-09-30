@@ -506,7 +506,8 @@ public class GameStateProfile : GameState
 
 	public void ShareBtnClicked()
 	{
-		// PORT: sharing removed (user request).
+		// PORT: the Android share dialog is replaced by copying the results to the clipboard.
+		PortShare.CopyProfile(DataManager.Instance.playerData.highscore);
 	}
 
 	protected void PopulateSharePopUpAndroid()
