@@ -297,8 +297,8 @@ public static class PortUpdater
 		GameObject panel = CreateRect("Panel", s_Dialog.transform, new Vector2(0.15f, 0.25f), new Vector2(0.85f, 0.75f));
 		panel.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.92f);
 		AccessibleUIGroupRoot root = panel.AddComponent<AccessibleUIGroupRoot>();
+		// Modal; not auto-read: the plugin would go on reading the Yes/No buttons by itself after the message
 		root.m_PopUp = true;
-		root.m_AutoRead = true;
 
 		GameObject label = CreateRect("Message", panel.transform, new Vector2(0.05f, 0.4f), new Vector2(0.95f, 0.95f));
 		s_DialogText = label.AddComponent<Text>();
