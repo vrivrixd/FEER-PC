@@ -51,6 +51,8 @@ public static class PortUpdater
 
 	private static GameObject s_Buttons;
 
+	private static AccessibleLabel s_DialogLabel;
+
 	private static int s_Answer; // 0 = waiting, 1 = yes, 2 = no
 
 	public static bool DialogOpen => s_Dialog != null && s_Answer == 0;
@@ -162,6 +164,9 @@ public static class PortUpdater
 			CloseDialog();
 			yield break;
 		}
+		// Without the buttons the accessibility plugin would move to the message and read it again
+		// (after Say below changed it): the progress messages are only spoken once, by Say.
+		UnityEngine.Object.Destroy(s_DialogLabel);
 		s_Buttons.SetActive(false);
 		Say(lm.GetLocalizedValue("port_update_downloading"));
 		string zip = Path.Combine(Path.GetTempPath(), "FEER-PC-update.zip");
@@ -302,9 +307,9 @@ public static class PortUpdater
 		s_DialogText.alignment = TextAnchor.MiddleCenter;
 		s_DialogText.color = Color.white;
 		s_DialogText.text = message;
-		AccessibleLabel accessibleLabel = label.AddComponent<AccessibleLabel>();
-		accessibleLabel.m_NameLabel = label;
-		accessibleLabel.m_ManualPositionOrder = 0;
+		s_DialogLabel = label.AddComponent<AccessibleLabel>();
+		s_DialogLabel.m_NameLabel = label;
+		s_DialogLabel.m_ManualPositionOrder = 0;
 
 		s_Buttons = CreateRect("Buttons", panel.transform, new Vector2(0f, 0f), new Vector2(1f, 0.4f));
 		CreateButton("Yes", s_Buttons.transform, new Vector2(0.1f, 0.2f), new Vector2(0.45f, 0.8f), yes, font, 1, () => s_Answer = 1);
@@ -354,5 +359,6 @@ public static class PortUpdater
 		s_Dialog = null;
 		s_DialogText = null;
 		s_Buttons = null;
+		s_DialogLabel = null;
 	}
 }

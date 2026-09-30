@@ -213,7 +213,47 @@ public class GameStateProfile : GameState
 		m_strSubmitNickname = lm.GetLocalizedValue("Enter a nickname to post your score to the global leaderboard and connect with your friends.");
 		m_strSubmit = lm.GetLocalizedValue("SUBMIT");
 		m_strChange = lm.GetLocalizedValue("CHANGE");
+		PortCreateCopyButton();
 		m_Init = true;
+	}
+
+	// PORT: "Copy to clipboard" button on the statistics tab (the tab the profile opens on), a copy of the
+	// profile tab's share button placed below the statistics list. The accessibility plugin reads it right
+	// after the tab's headline.
+	private void PortCreateCopyButton()
+	{
+		AccessibleUIGroupRoot statsRoot = PortGroupRoot(bestScore.transform);
+		AccessibleUIGroupRoot profileRoot = PortGroupRoot(profileTopScore.transform);
+		Transform source = profileRoot.transform.Find("ShareBtn");
+		GameObject go = Object.Instantiate(source.gameObject, statsRoot.transform, false);
+		go.name = "PortCopyBtn";
+		RectTransform rect = (RectTransform)go.transform;
+		rect.anchorMin = new Vector2(0.64f, 0.03f);
+		rect.anchorMax = new Vector2(0.94f, 0.13f);
+		foreach (LocalizedButtonUI localized in go.GetComponents<LocalizedButtonUI>())
+		{
+			Object.DestroyImmediate(localized);
+		}
+		Transform label = go.transform.Find("Text");
+		label.GetComponent<Text>().text = LocalizationManager.Instance.GetLocalizedValue("port_copy_to_clipboard");
+		Button button = go.GetComponent<Button>();
+		button.onClick = new Button.ButtonClickedEvent();
+		button.onClick.AddListener(ShareBtnClicked);
+		AccessibleButton accessible = go.GetComponent<AccessibleButton>();
+		accessible.m_Text = "port_copy_to_clipboard";
+		accessible.m_IsLocalizationKey = true;
+		accessible.m_NameLabel = label.gameObject;
+		accessible.m_ManualPositionParent = statsRoot.gameObject;
+		accessible.m_ManualPositionOrder = 2;
+	}
+
+	private static AccessibleUIGroupRoot PortGroupRoot(Transform t)
+	{
+		while (t != null && t.GetComponent<AccessibleUIGroupRoot>() == null)
+		{
+			t = t.parent;
+		}
+		return (t != null) ? t.GetComponent<AccessibleUIGroupRoot>() : null;
 	}
 
 	protected void UpdateUI()

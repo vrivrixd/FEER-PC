@@ -7,18 +7,17 @@ using UnityEngine.UI;
 // in the game's language, instead of opening the Android share dialog.
 public static class PortShare
 {
-	// Game over: "Can you beat me?", then the score and lights of the run as shown on the screen
-	public static void CopyRunResult(Text scoreTitle, int score, bool newHighscore, Text lightsTitle, int lights)
+	// Game over: "Can you beat me?", then what the screen reads: the run's points and lights,
+	// the lights owned and the highscore
+	public static void CopyRunResult(int score, int lights, int totalLights, int highscore)
 	{
 		LocalizationManager lm = LocalizationManager.Instance;
 		StringBuilder sb = new StringBuilder();
 		sb.AppendLine(lm.GetLocalizedValue("Can you beat me?"));
-		AppendRow(sb, LabelText(scoreTitle), NumberFormatter.FormatToLocale(score));
-		if (newHighscore)
-		{
-			sb.AppendLine(lm.GetLocalizedValue("tts_new_highscore"));
-		}
-		AppendRow(sb, LabelText(lightsTitle), NumberFormatter.FormatToLocale(lights));
+		sb.AppendLine(lm.GetLocalizedValue("tts_you_have_scored") + " " + NumberFormatter.FormatToLocale(score) + " " + lm.GetLocalizedValue("tts_points_this_run"));
+		sb.AppendLine(lm.GetLocalizedValue("tts_you_have_collected") + " " + NumberFormatter.FormatToLocale(lights) + " " + lm.GetLocalizedValue("tts_lights_this_run"));
+		sb.AppendLine(lm.GetLocalizedValue("You have") + " " + NumberFormatter.FormatToLocale(totalLights) + " " + lm.GetLocalizedValue("LIGHTS"));
+		sb.AppendLine(string.Format(lm.GetLocalizedValue("port_copy_highscore"), NumberFormatter.FormatToLocale(highscore)));
 		Copy(sb.ToString());
 	}
 
