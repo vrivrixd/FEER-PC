@@ -553,11 +553,12 @@ public class PlayerInputController : MonoBehaviour
 			return;
 		}
 		PlayerData_v_1_1_3 playerData = DataManager.Instance.playerData;
-		// PORT: besides the original arrow keys, accepts the virtual gestures from PortInput (gamepad/mouse).
-		bool keyLeft = PortInput.GetKeyDown(KeyCode.LeftArrow) || PortInput.GameSwipeLeft;
-		bool keyRight = PortInput.GetKeyDown(KeyCode.RightArrow) || PortInput.GameSwipeRight;
-		bool keyUp = PortInput.GetKeyDown(KeyCode.UpArrow) || PortInput.GameSwipeUp;
-		bool keyDown = PortInput.GetKeyDown(KeyCode.DownArrow) || PortInput.GameSwipeDown;
+		// PORT: the original read the arrow keys and Space; PortInput turns the keys and gamepad buttons set in
+		// the controls menu (PortBindings), the sticks, the d-pad and the mouse into these gestures.
+		bool keyLeft = PortInput.GameSwipeLeft;
+		bool keyRight = PortInput.GameSwipeRight;
+		bool keyUp = PortInput.GameSwipeUp;
+		bool keyDown = PortInput.GameSwipeDown;
 		if (keyLeft)
 		{
 			ChangeLane(playerData.useReverseLeftRight ? 1 : -1);
@@ -574,7 +575,7 @@ public class PlayerInputController : MonoBehaviour
 		{
 			TrySlide();
 		}
-		else if (m_WeaponActive && (Input.GetKeyDown(KeyCode.Space) || PortInput.GameTap))
+		else if (m_WeaponActive && PortInput.GameTap)
 		{
 			ShootProjectile();
 		}

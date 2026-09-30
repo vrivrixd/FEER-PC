@@ -288,6 +288,7 @@ public class GameStateMenuOptions : GameState
 			SetToggleImage(voiceOverImage, true);
 		}
 		PortCreatePowerUpCountdownToggle(playerData);
+		PortCreateControlsButton();
 		m_SettingsBtnText = settingsBtn.GetComponentInChildren<Text>();
 		m_HelpBtnText = helpBtn.GetComponentInChildren<Text>();
 		m_ContactBtnText = contactBtn.GetComponentInChildren<Text>();
@@ -381,6 +382,33 @@ public class GameStateMenuOptions : GameState
 		accessible.m_IsLocalizationKey = true;
 		accessible.m_ManualPositionOrder = vibrationToggle.GetComponent<AccessibleToggle>().m_ManualPositionOrder + 1;
 		toggle.onValueChanged.AddListener(ValueChangedPowerUpCountdown);
+	}
+
+	// PORT: "Controls" button (PortControlsMenu), a copy of the change-language button placed below the
+	// power-up countdown option and read after it.
+	private void PortCreateControlsButton()
+	{
+		Transform source = vibrationToggle.transform.parent.parent.Find("LanguagePanel/ChangeLanguageButton");
+		GameObject go = Object.Instantiate(source.gameObject, vibrationToggle.transform.parent, false);
+		go.name = "PortControlsButton";
+		RectTransform rect = (RectTransform)go.transform;
+		RectTransform toggle = (RectTransform)vibrationToggle.transform;
+		float height = toggle.anchorMax.y - toggle.anchorMin.y;
+		rect.anchorMin = new Vector2(toggle.anchorMin.x, toggle.anchorMin.y - 2f * height);
+		rect.anchorMax = new Vector2(toggle.anchorMax.x, toggle.anchorMin.y - height);
+		rect.offsetMin = Vector2.zero;
+		rect.offsetMax = Vector2.zero;
+		Text label = go.GetComponentInChildren<Text>();
+		label.text = LocalizationManager.Instance.GetLocalizedValue("port_controls");
+		Button button = go.GetComponent<Button>();
+		button.onClick = new Button.ButtonClickedEvent();
+		button.onClick.AddListener(() => PortControlsMenu.Open(label.font, go));
+		AccessibleButton accessible = go.GetComponent<AccessibleButton>();
+		accessible.m_Text = "port_controls";
+		accessible.m_IsLocalizationKey = true;
+		accessible.m_NameLabel = label.gameObject;
+		accessible.m_ManualPositionParent = vibrationToggle.GetComponent<AccessibleToggle>().m_ManualPositionParent;
+		accessible.m_ManualPositionOrder = vibrationToggle.GetComponent<AccessibleToggle>().m_ManualPositionOrder + 2;
 	}
 
 	public void ValueChangedPowerUpCountdown(bool selected)

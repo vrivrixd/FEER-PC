@@ -335,6 +335,21 @@ public abstract class Mission
 		}
 	}
 
+	// PORT: progress during the run for the mission key (PortStatus). UpdateProgress normally runs when the run
+	// ends; here its result is read and the mission state is restored, so nothing is completed early.
+	// Returns null when the mission is done.
+	public string PortLiveProgress()
+	{
+		float progress = m_Progress;
+		bool finished = m_Finished;
+		UpdateProgress();
+		bool done = m_Completed || m_Finished;
+		string text = done ? null : GetMissionProgress(true);
+		m_Progress = progress;
+		m_Finished = finished;
+		return text;
+	}
+
 	public abstract string GetMissionTitle(bool ttsValue = false);
 
 	public abstract string GetMissionDesc(bool ttsValue = false);

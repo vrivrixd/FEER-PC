@@ -1,19 +1,19 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // PORT: PC input converted into the original game's gestures (Android: swipe and tap).
 //
-// Keyboard (already in the original code): arrows = swipe, Space = tap (shoot).
+// Run actions (lanes, jump, slide, shoot, pause, score, lights, missions) use the keys and gamepad buttons
+// set in the settings menu (PortBindings, PortControlsMenu). Defaults: keyboard arrows, Space/Ctrl shoot,
+// Esc pauses, S/L/Q say score/lights/missions; see PortBindings for the gamepads.
+// The sticks and the d-pad always act as arrows, in menus and during the run.
 // Esc = pause gesture (two-finger double tap): pauses the game or skips the tutorial.
 // PORT: in menus Esc goes back to the previous screen (GameState.PortBack); in the pause menu it resumes the game.
 // In menus the accessibility plugin uses arrows, Enter and Esc (UAP default on Windows).
 //
 // Gamepad (Xbox/XInput and PlayStation DualShock 4/DualSense, detected by name):
-//   sticks and d-pad = arrows (menus and run);
-//   During the run: Cross (A) jumps, Circle (B) slides, Triangle/Square/touchpad (X/Y) shoot,
-//     L1/L2 (LB/LT) = left lane, R1/R2 (RB/RT) = right lane, Options/Share (Start/Back) pause.
 //   In menus: Cross/Options/touchpad (A/Start) = Enter; Circle/Share (B/Back) = Esc.
-//   In the pause menu and the tutorial skip confirmation: Options/Share (Start/Back) resume, like Esc.
-//   During the run: L3 says the score, R3 says the lights (keyboard: S and L). See PortStatus.
+//   In the pause menu and the tutorial skip confirmation: the pause buttons resume, like Esc.
 // "During the run" = PlayGame state with the accessibility plugin paused (no menu shown).
 // PlayStation gamepads are read directly through HID when possible (PortSonyInput): this also
 // works over Bluetooth, where Windows does not deliver the buttons to Unity.
@@ -73,9 +73,24 @@ public class PortInput : MonoBehaviour
 		go.AddComponent<PortInput>();
 	}
 
+	// Controls menu: while true, the next key or gamepad button is reported in CapturedKey/CapturedPad
+	// (for one frame) and no other input reaches the game or the accessibility plugin.
+	public static bool Capturing { get; set; }
+
+	public static int CapturedKey { get; private set; } = -1;
+
+	public static int CapturedPad { get; private set; } = -1;
+
+	// The connected gamepad's layout in PortBindings (PlayStation or Xbox)
+	public static int PadDevice => SonyGamepad ? PortBindings.PlayStation : PortBindings.Xbox;
+
 	// Replaces Input.GetKeyDown where the game/UAP reads keys: includes the gamepad.
 	public static bool GetKeyDown(KeyCode key)
 	{
+		if (Capturing)
+		{
+			return false;
+		}
 		if (Input.GetKeyDown(key))
 		{
 			return true;
@@ -129,6 +144,12 @@ public class PortInput : MonoBehaviour
 
 	private static bool TryBack()
 	{
+		// Controls menu (settings): Esc goes back one page
+		if (PortControlsMenu.IsOpen)
+		{
+			PortControlsMenu.Back();
+			return true;
+		}
 		// Update dialog shown after the logo: Esc = No
 		if (PortUpdater.DialogOpen)
 		{
@@ -164,13 +185,21 @@ public class PortInput : MonoBehaviour
 		s_Submit = false;
 		s_Cancel = false;
 		s_PauseToggle = false;
+		CapturedKey = -1;
+		CapturedPad = -1;
+		if (Capturing)
+		{
+			UpdateCapture();
+			return;
+		}
 		UpdateJoystick();
 		UpdateMouse();
 		// Esc from keyboard or gamepad: in menus goes back to the previous screen; otherwise pause gesture.
 		// Steam (desktop configuration) also turns gamepad buttons into keys: the same press
 		// arrived as a button and, a moment later, as a keyboard Esc, pausing again.
 		// So a keyboard Esc right after a gamepad pause/back button is ignored.
-		bool keyboardEsc = Input.GetKeyDown(KeyCode.Escape);
+		// During the run the keyboard pause keys are the ones set in the controls menu (Esc by default)
+		bool keyboardEsc = IsRunning() ? KeyDown(PortBindings.Get(PortBindings.Keyboard, PortAction.Pause)) : Input.GetKeyDown(KeyCode.Escape);
 		if (keyboardEsc && Time.unscaledTime - m_LastPadEscTime < c_SteamEchoWindow)
 		{
 			Debug.Log("[PortInput] Keyboard Esc ignored (gamepad echo)");
@@ -191,62 +220,26 @@ public class PortInput : MonoBehaviour
 	}
 
 	// Button numbering in Unity (legacy Input Manager).
-	// Xbox: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 Back, 7 Start (LT/RT are axes 9 and 10).
-	// PlayStation: 0 Square, 1 Cross, 2 Circle, 3 Triangle, 4 L1, 5 R1, 6 L2, 7 R2, 8 Share, 9 Options, 13 Touchpad.
-	private class Layout
-	{
-		public KeyCode[] Jump;      // run: jump (= d-pad up)
+	// Xbox: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 Back, 7 Start, 8/9 stick clicks (LT/RT are axes 9 and 10).
+	// PlayStation: 0 Square, 1 Cross, 2 Circle, 3 Triangle, 4 L1, 5 R1, 6 L2, 7 R2, 8 Share, 9 Options,
+	// 10 L3, 11 R3, 12 PS, 13 Touchpad.
+	// Menu buttons are fixed; the run buttons come from PortBindings.
+	private static readonly int[] c_XboxSubmit = { 0, 7 };
 
-		public KeyCode[] Slide;     // run: slide (= d-pad down)
+	private static readonly int[] c_XboxCancel = { 1, 6 };
 
-		public KeyCode[] Shoot;     // run: shoot (= Space)
+	private static readonly int[] c_SonySubmit = { 1, 9, 13 };
 
-		public KeyCode[] Left;      // run: left lane
-
-		public KeyCode[] Right;     // run: right lane
-
-		public KeyCode[] Pause;     // run: pause (= Esc)
-
-		public KeyCode[] Submit;    // menus: Enter
-
-		public KeyCode[] Cancel;    // menus: Esc
-
-		public KeyCode[] Score;     // run: say the score (= S)
-
-		public KeyCode[] Lights;    // run: say the lights (= L)
-	}
-
-	private static readonly Layout c_Xbox = new Layout
-	{
-		Jump = new[] { KeyCode.JoystickButton0 },
-		Slide = new[] { KeyCode.JoystickButton1 },
-		Shoot = new[] { KeyCode.JoystickButton2, KeyCode.JoystickButton3 },
-		Left = new[] { KeyCode.JoystickButton4 },
-		Right = new[] { KeyCode.JoystickButton5 },
-		Pause = new[] { KeyCode.JoystickButton6, KeyCode.JoystickButton7 },
-		Submit = new[] { KeyCode.JoystickButton0, KeyCode.JoystickButton7 },
-		Cancel = new[] { KeyCode.JoystickButton1, KeyCode.JoystickButton6 },
-		Score = new[] { KeyCode.JoystickButton8 },
-		Lights = new[] { KeyCode.JoystickButton9 }
-	};
-
-	private static readonly Layout c_Sony = new Layout
-	{
-		Jump = new[] { KeyCode.JoystickButton1 },
-		Slide = new[] { KeyCode.JoystickButton2 },
-		Shoot = new[] { KeyCode.JoystickButton0, KeyCode.JoystickButton3, KeyCode.JoystickButton13 },
-		Left = new[] { KeyCode.JoystickButton4, KeyCode.JoystickButton6 },
-		Right = new[] { KeyCode.JoystickButton5, KeyCode.JoystickButton7 },
-		Pause = new[] { KeyCode.JoystickButton8, KeyCode.JoystickButton9 },
-		Submit = new[] { KeyCode.JoystickButton1, KeyCode.JoystickButton9, KeyCode.JoystickButton13 },
-		Cancel = new[] { KeyCode.JoystickButton2, KeyCode.JoystickButton8 },
-		Score = new[] { KeyCode.JoystickButton10 },
-		Lights = new[] { KeyCode.JoystickButton11 }
-	};
+	private static readonly int[] c_SonyCancel = { 2, 8 };
 
 	private bool m_LeftTriggerDown;
 
 	private bool m_RightTriggerDown;
+
+	// Xbox trigger presses this frame (PortBindings.c_LT / c_RT)
+	private static bool s_LeftTrigger;
+
+	private static bool s_RightTrigger;
 
 	private static string s_LastJoystickName;
 
@@ -320,11 +313,28 @@ public class PortInput : MonoBehaviour
 	// true = PlayStation gamepad read directly through HID (PortSonyInput); Unity input is ignored for it.
 	private static bool s_UseHid;
 
-	private static bool AnyDown(KeyCode[] keys)
+	private static bool PadDown(int code)
 	{
-		foreach (KeyCode k in keys)
+		if (code == PortBindings.c_LT)
 		{
-			if (s_UseHid ? PortSonyInput.WasPressed(k - KeyCode.JoystickButton0) : Input.GetKeyDown(k))
+			return s_LeftTrigger;
+		}
+		if (code == PortBindings.c_RT)
+		{
+			return s_RightTrigger;
+		}
+		if (code < 0 || code > 19)
+		{
+			return false;
+		}
+		return s_UseHid ? PortSonyInput.WasPressed(code) : Input.GetKeyDown(KeyCode.JoystickButton0 + code);
+	}
+
+	private static bool PadDown(IList<int> codes)
+	{
+		foreach (int code in codes)
+		{
+			if (PadDown(code))
 			{
 				return true;
 			}
@@ -332,12 +342,75 @@ public class PortInput : MonoBehaviour
 		return false;
 	}
 
+	private static bool KeyDown(IList<int> codes)
+	{
+		foreach (int code in codes)
+		{
+			if (Input.GetKeyDown((KeyCode)code))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// Run action pressed on the keyboard or on the connected gamepad
+	private static bool ActionDown(PortAction action)
+	{
+		return KeyDown(PortBindings.Get(PortBindings.Keyboard, action)) || PadDown(PortBindings.Get(s_Sony ? PortBindings.PlayStation : PortBindings.Xbox, action));
+	}
+
+	private static KeyCode[] s_KeyboardKeys;
+
+	// Controls menu: reports the first keyboard key or gamepad button pressed this frame
+	private void UpdateCapture()
+	{
+		ReadPad();
+		if (s_KeyboardKeys == null)
+		{
+			List<KeyCode> keys = new List<KeyCode>();
+			foreach (KeyCode key in System.Enum.GetValues(typeof(KeyCode)))
+			{
+				if (key > KeyCode.None && key < KeyCode.Mouse0 && !keys.Contains(key))
+				{
+					keys.Add(key);
+				}
+			}
+			s_KeyboardKeys = keys.ToArray();
+		}
+		foreach (KeyCode key in s_KeyboardKeys)
+		{
+			if (Input.GetKeyDown(key))
+			{
+				CapturedKey = (int)key;
+				return;
+			}
+		}
+		for (int i = 0; i < 20; i++)
+		{
+			if (PadDown(i))
+			{
+				CapturedPad = i;
+				return;
+			}
+		}
+		if (s_LeftTrigger)
+		{
+			CapturedPad = PortBindings.c_LT;
+		}
+		else if (s_RightTrigger)
+		{
+			CapturedPad = PortBindings.c_RT;
+		}
+	}
+
 	private static Vector2 Strongest(Vector2 a, Vector2 b)
 	{
 		return (b.sqrMagnitude > a.sqrMagnitude) ? b : a;
 	}
 
-	private void UpdateJoystick()
+	// Gamepad state for this frame: layout, HID, stick/d-pad directions (s_Up...) and trigger presses
+	private void ReadPad()
 	{
 		DetectControllerType();
 		PortSonyInput.Poll();
@@ -393,70 +466,64 @@ public class PortInput : MonoBehaviour
 		{
 			m_StickLast = Vector2.zero;
 		}
-		Layout layout = s_Sony ? c_Sony : c_Xbox;
 		// Xbox triggers are axes: generate a press when they pass the halfway point
-		bool leftTrigger = false;
-		bool rightTrigger = false;
+		s_LeftTrigger = false;
+		s_RightTrigger = false;
 		if (!s_Sony)
 		{
 			bool lt = ReadAxis("PortAxis8") > 0.5f;
 			bool rt = ReadAxis("PortAxis9") > 0.5f;
-			leftTrigger = lt && !m_LeftTriggerDown;
-			rightTrigger = rt && !m_RightTriggerDown;
+			s_LeftTrigger = lt && !m_LeftTriggerDown;
+			s_RightTrigger = rt && !m_RightTriggerDown;
 			m_LeftTriggerDown = lt;
 			m_RightTriggerDown = rt;
 		}
+	}
+
+	private void UpdateJoystick()
+	{
+		ReadPad();
 		if (IsRunning())
 		{
-			// Run: buttons become the game gestures; the d-pad still works (above).
-			if (AnyDown(layout.Jump))
-			{
-				GameSwipeUp = true;
-			}
-			if (AnyDown(layout.Slide))
-			{
-				GameSwipeDown = true;
-			}
-			if (AnyDown(layout.Left) || leftTrigger)
-			{
-				GameSwipeLeft = true;
-			}
-			if (AnyDown(layout.Right) || rightTrigger)
-			{
-				GameSwipeRight = true;
-			}
-			if (AnyDown(layout.Shoot))
-			{
-				GameTap = true;
-			}
-			if (AnyDown(layout.Pause))
+			// Run: the keys and buttons set for each action (PortBindings) and the sticks/d-pad become the
+			// game gestures. The keyboard pause keys are handled in Update (Steam echo filter).
+			GameSwipeLeft |= s_Left || ActionDown(PortAction.Left);
+			GameSwipeRight |= s_Right || ActionDown(PortAction.Right);
+			GameSwipeUp |= s_Up || ActionDown(PortAction.Jump);
+			GameSwipeDown |= s_Down || ActionDown(PortAction.Slide);
+			GameTap |= ActionDown(PortAction.Shoot);
+			if (PadDown(PortBindings.Get(s_Sony ? PortBindings.PlayStation : PortBindings.Xbox, PortAction.Pause)))
 			{
 				s_PauseToggle = true;
 			}
-			if (AnyDown(layout.Score) || Input.GetKeyDown(KeyCode.S))
+			if (ActionDown(PortAction.Score))
 			{
 				PortStatus.SayScore();
 			}
-			if (AnyDown(layout.Lights) || Input.GetKeyDown(KeyCode.L))
+			if (ActionDown(PortAction.Lights))
 			{
 				PortStatus.SayLights();
 			}
+			if (ActionDown(PortAction.Missions))
+			{
+				PortStatus.SayMissions();
+			}
+			return;
 		}
-		else if (IsPauseMenu() && AnyDown(layout.Pause))
+		// Pause menu or tutorial skip confirmation: the pause buttons and keys resume, like Esc
+		int device = s_Sony ? PortBindings.PlayStation : PortBindings.Xbox;
+		if (IsPauseMenu() && (PadDown(PortBindings.Get(device, PortAction.Pause)) || (KeyDown(PortBindings.Get(PortBindings.Keyboard, PortAction.Pause)) && !Input.GetKeyDown(KeyCode.Escape))))
 		{
-			// Pause menu or tutorial skip confirmation: Start/Options (and Share/Back) resume, like Esc
 			s_Cancel = true;
+			return;
 		}
-		else
+		if (PadDown(s_Sony ? c_SonySubmit : c_XboxSubmit))
 		{
-			if (AnyDown(layout.Submit))
-			{
-				s_Submit = true;
-			}
-			if (AnyDown(layout.Cancel))
-			{
-				s_Cancel = true;
-			}
+			s_Submit = true;
+		}
+		if (PadDown(s_Sony ? c_SonyCancel : c_XboxCancel))
+		{
+			s_Cancel = true;
 		}
 	}
 

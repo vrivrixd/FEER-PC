@@ -80,6 +80,10 @@ public class PlayerData_v_1_1_3
 	[OptionalField]
 	public bool portPowerUpCountdown = true;
 
+	// PORT: keys and gamepad buttons of the run actions (PortBindings); null = defaults
+	[OptionalField]
+	public string portBindings;
+
 	[OnDeserializing]
 	private void PortOnDeserializing(StreamingContext context)
 	{

@@ -791,6 +791,8 @@ public class DataManager : MonoBehaviour
 
 	protected void LoadPlayerData()
 	{
+		// PORT: the controls come from this save (also after a reset)
+		PortBindings.Reload();
 		m_PlayerData = LoadBinary<PlayerData_v_1_1_3>("/PlayerData.dat", FileAccess.ReadWrite);
 		if (m_PlayerData == null)
 		{
@@ -1540,6 +1542,13 @@ public class DataManager : MonoBehaviour
 			m_PlayerData.useVibration = enabled;
 			SavePlayerData();
 		}
+	}
+
+	// PORT: controls set in the settings menu (PortBindings)
+	public void SavePortBindings(string bindings)
+	{
+		m_PlayerData.portBindings = bindings;
+		SavePlayerData();
 	}
 
 	// PORT: settings menu option (PortPowerUpCountdown)
