@@ -22,7 +22,7 @@ public static class PortShare
 		Copy(sb.ToString());
 	}
 
-	// Profile: the profile tab (nickname, mission level, highscore) and the statistics tab, in screen order
+	// Profile: the profile tab (mission level, highscore) and the statistics tab, in screen order
 	public static void CopyProfile(Transform profileRows, Transform statsRows)
 	{
 		StringBuilder sb = new StringBuilder();
@@ -45,12 +45,12 @@ public static class PortShare
 	}
 
 	// Row = label "Text" + value "Text (1)"; a row with only a label is a heading.
-	// The leaderboard rank needs the online server (removed); buttons are not copied.
+	// The leaderboard rank and the nickname need the online server (removed); buttons are not copied.
 	private static void AppendRows(StringBuilder sb, List<Transform> rows)
 	{
 		foreach (Transform row in rows)
 		{
-			if (!row.gameObject.activeSelf || row.name == "Leaderboard" || row.GetComponent<Button>() != null)
+			if (!row.gameObject.activeSelf || row.name == "Leaderboard" || row.name == "Nickname" || row.GetComponent<Button>() != null)
 			{
 				continue;
 			}

@@ -225,6 +225,8 @@ public class FeerSceneManager : MonoBehaviour
 		}
 		blackCanvas.SetActive(false);
 		initCanvas.SetActive(true);
+		// PORT: look for a newer release while the logo is shown (see PortUpdater)
+		PortUpdater.StartCheck(this);
 		StartCoroutine(InitAllData());
 	}
 
@@ -261,6 +263,8 @@ public class FeerSceneManager : MonoBehaviour
 		}
 		Screen.orientation = ScreenOrientation.AutoRotation;
 		yield return new WaitForSeconds(1f);
+		// PORT: after the logo, offer the update (if any) before the theme selection
+		yield return PortUpdater.OfferUpdate();
 		if (!DataManager.Instance.playerData.playTutorial)
 		{
 			selectThemeOptions.SetActive(true);

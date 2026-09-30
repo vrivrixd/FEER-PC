@@ -129,6 +129,12 @@ public class PortInput : MonoBehaviour
 
 	private static bool TryBack()
 	{
+		// Update dialog shown after the logo: Esc = No
+		if (PortUpdater.DialogOpen)
+		{
+			PortUpdater.Decline();
+			return true;
+		}
 		// Editing a field: Esc only cancels the edit (handled by the accessibility plugin)
 		if (UAP_AccessibilityManager.PortIsInteracting())
 		{
