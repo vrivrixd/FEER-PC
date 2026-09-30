@@ -1,40 +1,114 @@
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
-// PORT: the share buttons (game over screen and profile) copy the results to the clipboard instead of opening
-// the Android share dialog. The text is built from the game's own share strings, in the current language;
-// the store links of the original are replaced by the port's page.
+// PORT: the share buttons (game over screen and profile) copy the results shown on screen to the clipboard,
+// in the game's language, instead of opening the Android share dialog.
 public static class PortShare
 {
-	private const string c_Link = "https://github.com/vrivrixd/FEER-PC";
-
-	private const string c_GameName = "FEER - The Game of Running Blind";
-
-	// Game over: "My new highscore is N! Can you beat me?" or "I scored N! Can you beat me?"
-	public static void CopyRunResult(int score, bool newHighscore)
+	// Game over: "Can you beat me?", then the score and lights of the run as shown on the screen
+	public static void CopyRunResult(Text scoreTitle, int score, bool newHighscore, Text lightsTitle, int lights)
 	{
 		LocalizationManager lm = LocalizationManager.Instance;
-		string first = lm.GetLocalizedValue(newHighscore ? "My new highscore is" : "I scored");
-		Copy(first + " " + NumberFormatter.FormatToLocale(score) + CanYouBeatMe(lm) + "\n" + c_GameName + "\n" + c_Link);
+		StringBuilder sb = new StringBuilder();
+		sb.AppendLine(lm.GetLocalizedValue("Can you beat me?"));
+		AppendRow(sb, LabelText(scoreTitle), NumberFormatter.FormatToLocale(score));
+		if (newHighscore)
+		{
+			sb.AppendLine(lm.GetLocalizedValue("tts_new_highscore"));
+		}
+		AppendRow(sb, LabelText(lightsTitle), NumberFormatter.FormatToLocale(lights));
+		Copy(sb.ToString());
 	}
 
-	// Profile: "My highscore is N. Try to beat me in FEER!"
-	public static void CopyProfile(int highscore)
+	// Profile: the profile tab (nickname, mission level, highscore) and the statistics tab, in screen order
+	public static void CopyProfile(Transform profileRows, Transform statsRows)
 	{
-		LocalizationManager lm = LocalizationManager.Instance;
-		string first = lm.GetLocalizedValue("My highscore is ").TrimEnd();
-		Copy(first + " " + NumberFormatter.FormatToLocale(highscore) + ". " + lm.GetLocalizedValue("Try to beat me in FEER!") + "\n" + c_GameName + "\n" + c_Link);
+		StringBuilder sb = new StringBuilder();
+		List<Transform> rows = new List<Transform>();
+		foreach (Transform row in profileRows)
+		{
+			rows.Add(row);
+		}
+		// The profile tab is laid out with anchors: top to bottom
+		rows.Sort((a, b) => ((RectTransform)b).anchorMin.y.CompareTo(((RectTransform)a).anchorMin.y));
+		AppendRows(sb, rows);
+		rows.Clear();
+		// The statistics list uses a layout group: sibling order
+		foreach (Transform row in statsRows)
+		{
+			rows.Add(row);
+		}
+		AppendRows(sb, rows);
+		Copy(sb.ToString());
 	}
 
-	// "! Can you beat me?\nFEER - The Game of Running Blind. Available on the App Store (" -> "! Can you beat me?"
-	private static string CanYouBeatMe(LocalizationManager lm)
+	// Row = label "Text" + value "Text (1)"; a row with only a label is a heading.
+	// The leaderboard rank needs the online server (removed); buttons are not copied.
+	private static void AppendRows(StringBuilder sb, List<Transform> rows)
 	{
-		string text = lm.GetLocalizedValue("! Can you beat me?\nFEER - The Game of Running Blind. Available on the App Store (");
-		int end = text.IndexOf('\n');
-		return (end >= 0) ? text.Substring(0, end) : "! " + lm.GetLocalizedValue("Can you beat me?");
+		foreach (Transform row in rows)
+		{
+			if (!row.gameObject.activeSelf || row.name == "Leaderboard" || row.GetComponent<Button>() != null)
+			{
+				continue;
+			}
+			Text label = null;
+			Text value = null;
+			Text single = row.GetComponent<Text>();
+			foreach (Transform child in row)
+			{
+				if (!child.gameObject.activeSelf)
+				{
+					continue;
+				}
+				if (child.name == "Text")
+				{
+					label = child.GetComponent<Text>();
+				}
+				else if (child.name == "Text (1)")
+				{
+					value = child.GetComponent<Text>();
+				}
+			}
+			if (label == null)
+			{
+				label = single;
+			}
+			if (label == null)
+			{
+				continue;
+			}
+			if (value != null)
+			{
+				AppendRow(sb, LabelText(label), value.text);
+			}
+			else
+			{
+				if (sb.Length > 0)
+				{
+					sb.AppendLine();
+				}
+				sb.AppendLine(LabelText(label));
+			}
+		}
+	}
+
+	private static void AppendRow(StringBuilder sb, string label, string value)
+	{
+		sb.AppendLine(label + ": " + value.Trim());
+	}
+
+	// Labels are translated by LocalizedTextUI only when first shown; translate here too (no-op if done)
+	private static string LabelText(Text label)
+	{
+		return LocalizationManager.Instance.GetLocalizedValue(label.text.Trim()).Trim().TrimEnd(':');
 	}
 
 	private static void Copy(string text)
 	{
+		text = text.TrimEnd();
 		GUIUtility.systemCopyBuffer = text;
 		Debug.Log("[PortShare] Copied: " + text.Replace("\n", " | "));
 		UAP_AccessibilityManager.Say(LocalizationManager.Instance.GetLocalizedValue("port_copied_to_clipboard"), false, true, UAP_AudioQueue.EInterrupt.All);

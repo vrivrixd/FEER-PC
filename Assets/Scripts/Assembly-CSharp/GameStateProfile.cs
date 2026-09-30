@@ -507,7 +507,8 @@ public class GameStateProfile : GameState
 	public void ShareBtnClicked()
 	{
 		// PORT: the Android share dialog is replaced by copying the results to the clipboard.
-		PortShare.CopyProfile(DataManager.Instance.playerData.highscore);
+		// Rows of the profile tab (TopScore/Text (1)) and of the statistics list (Highest Score/Text (1))
+		PortShare.CopyProfile(profileTopScore.transform.parent.parent, bestScore.transform.parent.parent);
 	}
 
 	protected void PopulateSharePopUpAndroid()

@@ -1097,7 +1097,9 @@ public class GameStateGameOver : GameState
 	public void ShareBtnClicked()
 	{
 		// PORT: the Android share dialog is replaced by copying the results to the clipboard.
-		PortShare.CopyRunResult(CGM.score, m_IsNewHighscore);
+		// The panel's numbers may still be counting up: the values come from the run itself.
+		Transform panel = counterPanelScore.transform.parent;
+		PortShare.CopyRunResult(panel.Find("ScoreTitle").GetComponent<Text>(), CGM.score, m_IsNewHighscore, panel.Find("LightsTitle").GetComponent<Text>(), CGM.sumCollectedGhosts);
 	}
 
 	protected void PopulateSharePopUpAndroid()
