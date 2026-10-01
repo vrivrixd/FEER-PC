@@ -354,6 +354,9 @@ public abstract class UAP_BaseElement : MonoBehaviour
 		// Callback to any listeners
 		m_OnInteractionStart.Invoke();
 
+		// PORT: the menu click sound for every option chosen with the keyboard or gamepad
+		PortClickSound.Play();
+
 		OnInteract();
 	}
 
