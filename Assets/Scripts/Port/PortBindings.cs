@@ -5,12 +5,12 @@ using UnityEngine;
 
 // PORT: keys and gamepad buttons for the run actions, editable in the settings menu (PortControlsMenu) and
 // kept in the save (PlayerData_v_1_1_3.portBindings). Menu navigation (arrows, Enter, Esc, sticks, d-pad)
-// is fixed; the sticks and the d-pad also always move during the run.
+// is fixed.
 //
 // Codes: keyboard = KeyCode; gamepad = button number as in PortInput (PlayStation 0 Square, 1 Cross,
 // 2 Circle, 3 Triangle, 4 L1, 5 R1, 6 L2, 7 R2, 8 Share, 9 Options, 10 L3, 11 R3, 12 PS, 13 Touchpad;
 // Xbox 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 Back, 7 Start, 8 left stick click, 9 right stick click,
-// c_LT/c_RT the triggers).
+// c_LT/c_RT the triggers). Stick and d-pad directions: DirectionCode(source, direction), on both gamepads.
 public enum PortAction
 {
 	Left,
@@ -40,6 +40,66 @@ public static class PortBindings
 
 	public const int c_RT = 101;
 
+	// Direction sources and directions; code = 110 + source * 10 + direction
+	public const int c_Dpad = 0;
+
+	public const int c_LeftStick = 1;
+
+	public const int c_RightStick = 2;
+
+	public const int c_DirUp = 0;
+
+	public const int c_DirDown = 1;
+
+	public const int c_DirLeft = 2;
+
+	public const int c_DirRight = 3;
+
+	private const int c_DirBase = 110;
+
+	// Saved bindings start with this; older saves had no stick/d-pad directions (they always moved)
+	private const string c_Version = "2;";
+
+	public static int DirectionCode(int source, int direction)
+	{
+		return c_DirBase + source * 10 + direction;
+	}
+
+	public static bool IsDirection(int code)
+	{
+		return code >= c_DirBase && code < c_DirBase + 30 && (code - c_DirBase) % 10 < 4;
+	}
+
+	public static int DirectionSource(int code)
+	{
+		return (code - c_DirBase) / 10;
+	}
+
+	public static int DirectionOf(int code)
+	{
+		return (code - c_DirBase) % 10;
+	}
+
+	public static readonly int[] DirectionCodes = BuildDirectionCodes();
+
+	private static int[] BuildDirectionCodes()
+	{
+		int[] codes = new int[12];
+		for (int i = 0; i < 12; i++)
+		{
+			codes[i] = DirectionCode(i / 4, i % 4);
+		}
+		return codes;
+	}
+
+	// The d-pad and both sticks in one direction, followed by the given buttons
+	private static int[] Dir(int direction, params int[] buttons)
+	{
+		List<int> codes = new List<int> { DirectionCode(c_Dpad, direction), DirectionCode(c_LeftStick, direction), DirectionCode(c_RightStick, direction) };
+		codes.AddRange(buttons);
+		return codes.ToArray();
+	}
+
 	private static List<int>[][] s_Bindings;
 
 	private static List<int>[] Defaults(int device)
@@ -58,9 +118,9 @@ public static class PortBindings
 				new[] { (int)KeyCode.L },
 				new[] { (int)KeyCode.Q });
 		case PlayStation:
-			return Make(new[] { 4, 6 }, new[] { 5, 7 }, new[] { 1 }, new[] { 2 }, new[] { 0, 3 }, new[] { 8, 9 }, new[] { 10 }, new[] { 11 }, new[] { 13 });
+			return Make(Dir(c_DirLeft, 4, 6), Dir(c_DirRight, 5, 7), Dir(c_DirUp, 1), Dir(c_DirDown, 2), new[] { 0, 3 }, new[] { 8, 9 }, new[] { 10 }, new[] { 11 }, new[] { 13 });
 		default:
-			return Make(new[] { 4, c_LT }, new[] { 5, c_RT }, new[] { 0 }, new[] { 1 }, new[] { 2, 3 }, new[] { 7 }, new[] { 8 }, new[] { 9 }, new[] { 6 });
+			return Make(Dir(c_DirLeft, 4, c_LT), Dir(c_DirRight, 5, c_RT), Dir(c_DirUp, 0), Dir(c_DirDown, 1), new[] { 2, 3 }, new[] { 7 }, new[] { 8 }, new[] { 9 }, new[] { 6 });
 		}
 	}
 
@@ -91,7 +151,12 @@ public static class PortBindings
 		{
 			return;
 		}
-		// "device/device/device", device = "action|action|...", action = "code,code"
+		// "2;device/device/device", device = "action|action|...", action = "code,code"
+		bool old = !saved.StartsWith(c_Version);
+		if (!old)
+		{
+			saved = saved.Substring(c_Version.Length);
+		}
 		try
 		{
 			string[] devices = saved.Split('/');
@@ -117,11 +182,30 @@ public static class PortBindings
 		{
 			Debug.Log("[PortBindings] Invalid saved bindings: " + e.Message);
 		}
+		if (old)
+		{
+			// The sticks and the d-pad used to move, jump and slide always: keep that
+			for (int d = PlayStation; d <= Xbox; d++)
+			{
+				List<int>[] defaults = Defaults(d);
+				for (int a = 0; a < ActionCount; a++)
+				{
+					int index = 0;
+					foreach (int code in defaults[a])
+					{
+						if (IsDirection(code) && !s_Bindings[d][a].Contains(code))
+						{
+							s_Bindings[d][a].Insert(index++, code);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private static void Save()
 	{
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(c_Version);
 		for (int d = 0; d < DeviceCount; d++)
 		{
 			if (d > 0)
@@ -206,6 +290,12 @@ public static class PortBindings
 		if (device == Keyboard)
 		{
 			return KeyName((KeyCode)code);
+		}
+		if (IsDirection(code))
+		{
+			int source = DirectionSource(code);
+			string name = L(source == c_Dpad ? "port_pad_dpad" : (source == c_LeftStick ? "port_pad_left_stick" : "port_pad_right_stick"));
+			return name + " " + L("port_dir_" + new[] { "up", "down", "left", "right" }[DirectionOf(code)]);
 		}
 		if (device == PlayStation)
 		{

@@ -6,7 +6,8 @@ using UnityEngine;
 // Run actions (lanes, jump, slide, shoot, pause, score, lights, missions) use the keys and gamepad buttons
 // set in the settings menu (PortBindings, PortControlsMenu). Defaults: keyboard arrows, Space/Ctrl shoot,
 // Esc pauses, S/L/Q say score/lights/missions; see PortBindings for the gamepads.
-// The sticks and the d-pad always act as arrows, in menus and during the run.
+// In menus the sticks and the d-pad always act as arrows; during the run each of their directions is a
+// gamepad binding like the buttons (by default they move, jump and slide).
 // Esc = pause gesture (two-finger double tap): pauses the game or skips the tutorial.
 // PORT: in menus Esc goes back to the previous screen (GameState.PortBack); in the pause menu it resumes the game.
 // In menus the accessibility plugin uses arrows, Enter and Esc (UAP default on Windows).
@@ -57,7 +58,11 @@ public class PortInput : MonoBehaviour
 	// Same threshold as the original game to recognize a swipe (2% of the screen width)
 	private const float c_MouseSwipeThreshold = 0.02f;
 
-	private Vector2 m_StickLast;
+	// Last value of each direction source (PortBindings.c_Dpad, c_LeftStick, c_RightStick order)
+	private readonly Vector2[] m_StickLast = new Vector2[3];
+
+	// Direction presses this frame, by source and direction (PortBindings.DirectionCode)
+	private static readonly bool[,] s_DirPressed = new bool[3, 4];
 
 	private bool m_MouseDown;
 
@@ -323,6 +328,10 @@ public class PortInput : MonoBehaviour
 		{
 			return s_RightTrigger;
 		}
+		if (PortBindings.IsDirection(code))
+		{
+			return s_DirPressed[PortBindings.DirectionSource(code), PortBindings.DirectionOf(code)];
+		}
 		if (code < 0 || code > 19)
 		{
 			return false;
@@ -394,6 +403,14 @@ public class PortInput : MonoBehaviour
 				return;
 			}
 		}
+		foreach (int code in PortBindings.DirectionCodes)
+		{
+			if (PadDown(code))
+			{
+				CapturedPad = code;
+				return;
+			}
+		}
 		if (s_LeftTrigger)
 		{
 			CapturedPad = PortBindings.c_LT;
@@ -404,9 +421,40 @@ public class PortInput : MonoBehaviour
 		}
 	}
 
-	private static Vector2 Strongest(Vector2 a, Vector2 b)
+	// Generates a direction "press" only when the source crosses the threshold (no repeat while held).
+	// Any source also moves through the menus (s_Up...).
+	private void ReadDirection(int source, Vector2 value)
 	{
-		return (b.sqrMagnitude > a.sqrMagnitude) ? b : a;
+		for (int d = 0; d < 4; d++)
+		{
+			s_DirPressed[source, d] = false;
+		}
+		Vector2 last = m_StickLast[source];
+		if (Mathf.Abs(last.x) < c_StickRelease && Mathf.Abs(last.y) < c_StickRelease)
+		{
+			if (Mathf.Abs(value.x) >= c_StickThreshold || Mathf.Abs(value.y) >= c_StickThreshold)
+			{
+				int dir;
+				if (Mathf.Abs(value.x) > Mathf.Abs(value.y))
+				{
+					dir = value.x < 0f ? PortBindings.c_DirLeft : PortBindings.c_DirRight;
+				}
+				else
+				{
+					dir = value.y > 0f ? PortBindings.c_DirUp : PortBindings.c_DirDown;
+				}
+				s_DirPressed[source, dir] = true;
+				s_Up |= dir == PortBindings.c_DirUp;
+				s_Down |= dir == PortBindings.c_DirDown;
+				s_Left |= dir == PortBindings.c_DirLeft;
+				s_Right |= dir == PortBindings.c_DirRight;
+				m_StickLast[source] = value;
+			}
+		}
+		else if (Mathf.Abs(value.x) < c_StickRelease && Mathf.Abs(value.y) < c_StickRelease)
+		{
+			m_StickLast[source] = Vector2.zero;
+		}
 	}
 
 	// Gamepad state for this frame: layout, HID, stick/d-pad directions (s_Up...) and trigger presses
@@ -419,53 +467,34 @@ public class PortInput : MonoBehaviour
 		{
 			s_Sony = true;
 		}
-		// Unity: stick Y is positive downwards (PortJoyY is already inverted); d-pad Y is positive upwards.
-		Vector2 value = new Vector2(ReadAxis("PortJoyX"), ReadAxis("PortJoyY"));
+		// Each source separately: d-pad, left stick, right stick (all with Y positive upwards;
+		// Unity's stick Y is positive downwards, PortJoyY is already inverted)
+		Vector2 dpad;
+		Vector2 left;
+		Vector2 right;
 		if (s_UseHid)
 		{
-			value = Strongest(Strongest(PortSonyInput.LeftStick, PortSonyInput.RightStick), PortSonyInput.Dpad);
-		}
-		else if (s_Sony)
-		{
-			value = Strongest(value, new Vector2(ReadAxis("PortAxis2"), -ReadAxis("PortAxis5")));
-			value = Strongest(value, new Vector2(ReadAxis("PortAxis6"), ReadAxis("PortAxis7")));
+			dpad = PortSonyInput.Dpad;
+			left = PortSonyInput.LeftStick;
+			right = PortSonyInput.RightStick;
 		}
 		else
 		{
-			value = Strongest(value, new Vector2(ReadAxis("PortAxis3"), -ReadAxis("PortAxis4")));
-			value = Strongest(value, new Vector2(ReadAxis("PortAxis5"), ReadAxis("PortAxis6")));
-		}
-		// Generates a key "press" only when the direction crosses the threshold (no repeat while held)
-		if (Mathf.Abs(m_StickLast.x) < c_StickRelease && Mathf.Abs(m_StickLast.y) < c_StickRelease)
-		{
-			if (Mathf.Abs(value.x) >= c_StickThreshold || Mathf.Abs(value.y) >= c_StickThreshold)
+			left = new Vector2(ReadAxis("PortJoyX"), ReadAxis("PortJoyY"));
+			if (s_Sony)
 			{
-				if (Mathf.Abs(value.x) > Mathf.Abs(value.y))
-				{
-					if (value.x < 0f)
-					{
-						s_Left = true;
-					}
-					else
-					{
-						s_Right = true;
-					}
-				}
-				else if (value.y > 0f)
-				{
-					s_Up = true;
-				}
-				else
-				{
-					s_Down = true;
-				}
-				m_StickLast = value;
+				right = new Vector2(ReadAxis("PortAxis2"), -ReadAxis("PortAxis5"));
+				dpad = new Vector2(ReadAxis("PortAxis6"), ReadAxis("PortAxis7"));
+			}
+			else
+			{
+				right = new Vector2(ReadAxis("PortAxis3"), -ReadAxis("PortAxis4"));
+				dpad = new Vector2(ReadAxis("PortAxis5"), ReadAxis("PortAxis6"));
 			}
 		}
-		else if (Mathf.Abs(value.x) < c_StickRelease && Mathf.Abs(value.y) < c_StickRelease)
-		{
-			m_StickLast = Vector2.zero;
-		}
+		ReadDirection(PortBindings.c_Dpad, dpad);
+		ReadDirection(PortBindings.c_LeftStick, left);
+		ReadDirection(PortBindings.c_RightStick, right);
 		// Xbox triggers are axes: generate a press when they pass the halfway point
 		s_LeftTrigger = false;
 		s_RightTrigger = false;
@@ -485,12 +514,12 @@ public class PortInput : MonoBehaviour
 		ReadPad();
 		if (IsRunning())
 		{
-			// Run: the keys and buttons set for each action (PortBindings) and the sticks/d-pad become the
+			// Run: the keys, buttons and stick/d-pad directions set for each action (PortBindings) become the
 			// game gestures. The keyboard pause keys are handled in Update (Steam echo filter).
-			GameSwipeLeft |= s_Left || ActionDown(PortAction.Left);
-			GameSwipeRight |= s_Right || ActionDown(PortAction.Right);
-			GameSwipeUp |= s_Up || ActionDown(PortAction.Jump);
-			GameSwipeDown |= s_Down || ActionDown(PortAction.Slide);
+			GameSwipeLeft |= ActionDown(PortAction.Left);
+			GameSwipeRight |= ActionDown(PortAction.Right);
+			GameSwipeUp |= ActionDown(PortAction.Jump);
+			GameSwipeDown |= ActionDown(PortAction.Slide);
 			GameTap |= ActionDown(PortAction.Shoot);
 			if (PadDown(PortBindings.Get(s_Sony ? PortBindings.PlayStation : PortBindings.Xbox, PortAction.Pause)))
 			{
