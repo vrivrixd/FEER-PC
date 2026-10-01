@@ -1,42 +1,61 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// PORT: controls menu, opened from the settings menu (GameStateMenuOptions). Built at runtime as a modal
-// accessible panel with three pages:
+// PORT: controls menu, opened from the settings menu (GameStateMenuOptions). Built at runtime as modal
+// accessible pages:
 //   main: Keyboard / PlayStation gamepad / Xbox gamepad / Close
-//   device: one button per run action ("Jump: Up arrow, W"), Restore defaults, Back
-//   action: Add key (or button), one "Remove <key>" button per key, Back
-// Adding waits for the next key or gamepad button (PortInput.Capturing); Esc cancels, as does 10 s without input.
+//   device: one entry per key of each run action ("Jump: Up arrow"), one "Jump: add key" entry per action,
+//           Restore defaults, Back
+// Choosing a key entry waits for the new key (or gamepad button) and replaces it; the same key changes nothing
+// and Delete removes it. Choosing an "add" entry adds the pressed key. Esc cancels, as does 10 s without input.
+// Afterwards the same page comes back with the focus on the same entry.
 // Esc (or the gamepad's back button) goes back one page. The keys are kept in the save (PortBindings).
+//
+// Each page is its own popup container. The accessibility plugin breaks (exceptions every frame) when the
+// focused element is destroyed while its container is active, so a new page is shown first and the old one
+// is destroyed only after the plugin has moved the focus to the new one.
 public class PortControlsMenu : MonoBehaviour
 {
 	private const float c_CaptureTimeout = 10f;
 
-	// The accessibility plugin registers new elements about 0.5 s after they appear
-	private const float c_RegisterDelay = 0.6f;
+	private const int c_RemoveKey = (int)KeyCode.Delete;
 
 	private static PortControlsMenu s_Instance;
 
 	private enum Page
 	{
 		Main,
-		Device,
-		Action
+		Device
 	}
 
 	private Page m_Page;
 
 	private int m_Device;
 
-	private PortAction m_Action;
-
 	private Font m_Font;
+
+	// Current page and the page being replaced (destroyed once the new one has the focus)
+	private GameObject m_PageRoot;
+
+	private GameObject m_OldPage;
 
 	private Transform m_Content;
 
+	private int m_Order;
+
+	private int m_FocusIndex;
+
+	private GameObject m_FocusTarget;
+
+	// Capture: the entry being changed (code -1 = add a key)
 	private bool m_Capturing;
+
+	private PortAction m_CaptureAction;
+
+	private int m_CaptureCode;
+
+	private int m_CaptureEntry;
 
 	private float m_CaptureDeadline;
 
@@ -54,7 +73,6 @@ public class PortControlsMenu : MonoBehaviour
 			return;
 		}
 		GameObject root = new GameObject("PortControlsMenu");
-		root.SetActive(false);
 		Canvas canvas = root.AddComponent<Canvas>();
 		canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 		canvas.sortingOrder = 900;
@@ -65,21 +83,7 @@ public class PortControlsMenu : MonoBehaviour
 		s_Instance = root.AddComponent<PortControlsMenu>();
 		s_Instance.m_Font = (font != null) ? font : Resources.GetBuiltinResource<Font>("Arial.ttf");
 		s_Instance.m_ReturnFocus = returnFocus;
-
-		GameObject panel = CreateRect("Panel", root.transform, new Vector2(0.1f, 0.05f), new Vector2(0.9f, 0.95f));
-		panel.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.95f);
-		AccessibleUIGroupRoot group = panel.AddComponent<AccessibleUIGroupRoot>();
-		group.m_PopUp = true;
-		GameObject content = CreateRect("Content", panel.transform, new Vector2(0.05f, 0.03f), new Vector2(0.95f, 0.97f));
-		VerticalLayoutGroup layout = content.AddComponent<VerticalLayoutGroup>();
-		layout.spacing = 6f;
-		layout.childControlHeight = true;
-		layout.childControlWidth = true;
-		layout.childForceExpandHeight = false;
-		layout.childForceExpandWidth = true;
-		s_Instance.m_Content = content.transform;
-		root.SetActive(true);
-		s_Instance.ShowMain(0);
+		s_Instance.ShowMain(0, true);
 	}
 
 	public static void Back()
@@ -90,20 +94,23 @@ public class PortControlsMenu : MonoBehaviour
 		}
 		if (s_Instance.m_Capturing)
 		{
-			s_Instance.StopCapture(true);
+			s_Instance.StopCapture();
+			s_Instance.Say(L("port_controls_cancelled"));
+			s_Instance.ShowDevice(s_Instance.m_Device, s_Instance.m_CaptureEntry, false);
 			return;
 		}
-		switch (s_Instance.m_Page)
+		// A page is still being replaced
+		if (s_Instance.m_OldPage != null)
 		{
-		case Page.Action:
-			s_Instance.ShowDevice(s_Instance.m_Device, (int)s_Instance.m_Action);
-			break;
-		case Page.Device:
-			s_Instance.ShowMain(s_Instance.m_Device);
-			break;
-		default:
+			return;
+		}
+		if (s_Instance.m_Page == Page.Device)
+		{
+			s_Instance.ShowMain(s_Instance.m_Device, true);
+		}
+		else
+		{
 			Close();
-			break;
 		}
 	}
 
@@ -113,16 +120,26 @@ public class PortControlsMenu : MonoBehaviour
 		{
 			return;
 		}
-		if (s_Instance.m_Capturing)
-		{
-			s_Instance.StopCapture(false);
-		}
-		GameObject returnFocus = s_Instance.m_ReturnFocus;
-		Destroy(s_Instance.gameObject);
+		PortControlsMenu menu = s_Instance;
 		s_Instance = null;
-		if (returnFocus != null)
+		if (menu.m_Capturing)
 		{
-			UAP_AccessibilityManager.SelectElement(returnFocus, true);
+			menu.StopCapture();
+		}
+		// Disabling the pages first deactivates their containers, so the settings menu gets the focus back
+		// before any element is destroyed
+		if (menu.m_OldPage != null)
+		{
+			menu.m_OldPage.SetActive(false);
+		}
+		if (menu.m_PageRoot != null)
+		{
+			menu.m_PageRoot.SetActive(false);
+		}
+		Destroy(menu.gameObject);
+		if (menu.m_ReturnFocus != null)
+		{
+			UAP_AccessibilityManager.SelectElement(menu.m_ReturnFocus, true);
 		}
 	}
 
@@ -131,80 +148,73 @@ public class PortControlsMenu : MonoBehaviour
 		return LocalizationManager.Instance.GetLocalizedValue(key);
 	}
 
-	private static void Say(string text)
+	private void Say(string text)
 	{
 		UAP_AccessibilityManager.Say(text, false, true, UAP_AudioQueue.EInterrupt.All);
 	}
 
 	// Pages ----------------------------------------------------------------------------------------------
 
-	private void ShowMain(int focus)
+	private void ShowMain(int focus, bool sayTitle)
 	{
 		m_Page = Page.Main;
-		List<GameObject> buttons = new List<GameObject>();
-		Clear(L("port_controls_title"));
-		buttons.Add(AddButton(PortBindings.DeviceName(PortBindings.Keyboard), () => ShowDevice(PortBindings.Keyboard, 0)));
-		buttons.Add(AddButton(PortBindings.DeviceName(PortBindings.PlayStation), () => ShowDevice(PortBindings.PlayStation, 0)));
-		buttons.Add(AddButton(PortBindings.DeviceName(PortBindings.Xbox), () => ShowDevice(PortBindings.Xbox, 0)));
+		NewPage(L("port_controls_title"), sayTitle, focus);
+		AddButton(PortBindings.DeviceName(PortBindings.Keyboard), () => ShowDevice(PortBindings.Keyboard, 0, true));
+		AddButton(PortBindings.DeviceName(PortBindings.PlayStation), () => ShowDevice(PortBindings.PlayStation, 0, true));
+		AddButton(PortBindings.DeviceName(PortBindings.Xbox), () => ShowDevice(PortBindings.Xbox, 0, true));
 		AddButton(L("CLOSE"), Close);
-		Focus(buttons[Mathf.Clamp(focus, 0, buttons.Count - 1)]);
+		FinishPage();
 	}
 
-	private void ShowDevice(int device, int focus)
+	private void ShowDevice(int device, int focus, bool sayTitle)
 	{
 		m_Page = Page.Device;
 		m_Device = device;
-		List<GameObject> buttons = new List<GameObject>();
-		Clear(PortBindings.DeviceName(device));
+		NewPage(PortBindings.DeviceName(device), sayTitle, focus);
+		string add = L(device == PortBindings.Keyboard ? "port_controls_add_key_entry" : "port_controls_add_button_entry");
 		for (int a = 0; a < PortBindings.ActionCount; a++)
 		{
 			PortAction action = (PortAction)a;
-			buttons.Add(AddButton(PortBindings.ActionName(action) + ": " + PortBindings.Names(device, action), () => ShowAction(action, 0)));
+			string name = PortBindings.ActionName(action);
+			foreach (int code in PortBindings.Get(device, action))
+			{
+				int c = code;
+				int entry = m_Order;
+				AddButton(name + ": " + PortBindings.CodeName(device, c), () => StartCapture(action, c, entry));
+			}
+			int addEntry = m_Order;
+			AddButton(name + ": " + add, () => StartCapture(action, -1, addEntry));
 		}
-		buttons.Add(AddButton(L("port_controls_restore"), RestoreDefaults));
-		AddButton(L("port_controls_back"), () => ShowMain(m_Device));
-		Focus(buttons[Mathf.Clamp(focus, 0, buttons.Count - 1)]);
+		int restoreEntry = m_Order;
+		AddButton(L("port_controls_restore"), () => RestoreDefaults(restoreEntry));
+		AddButton(L("port_controls_back"), () => ShowMain(m_Device, true));
+		FinishPage();
 	}
 
-	private void ShowAction(PortAction action, int focus)
+	private void RestoreDefaults(int entry)
 	{
-		m_Page = Page.Action;
-		m_Action = action;
-		List<GameObject> buttons = new List<GameObject>();
-		Clear(PortBindings.ActionName(action) + " (" + PortBindings.DeviceName(m_Device) + ")");
-		buttons.Add(AddButton(L(m_Device == PortBindings.Keyboard ? "port_controls_add_key" : "port_controls_add_button"), StartCapture));
-		foreach (int code in new List<int>(PortBindings.Get(m_Device, action)))
+		if (m_OldPage != null)
 		{
-			int c = code;
-			buttons.Add(AddButton(string.Format(L("port_controls_remove"), PortBindings.CodeName(m_Device, c)), () => RemoveCode(c)));
+			return;
 		}
-		AddButton(L("port_controls_back"), () => ShowDevice(m_Device, (int)m_Action));
-		Focus(buttons[Mathf.Clamp(focus, 0, buttons.Count - 1)]);
-	}
-
-	private void RestoreDefaults()
-	{
 		PortBindings.RestoreDefaults(m_Device);
 		Say(L("port_controls_restored"));
-		ShowDevice(m_Device, PortBindings.ActionCount);
-	}
-
-	private void RemoveCode(int code)
-	{
-		string name = PortBindings.CodeName(m_Device, code);
-		PortBindings.Remove(m_Device, m_Action, code);
-		Say(string.Format(L("port_controls_removed"), name, PortBindings.ActionName(m_Action)));
-		ShowAction(m_Action, 0);
+		ShowDevice(m_Device, entry, false);
 	}
 
 	// Capture ------------------------------------------------------------------------------------------
 
-	private void StartCapture()
+	private void StartCapture(PortAction action, int code, int entry)
 	{
-		string action = PortBindings.ActionName(m_Action);
+		if (m_Capturing || m_OldPage != null)
+		{
+			return;
+		}
+		string name = PortBindings.ActionName(action);
+		string text;
 		if (m_Device == PortBindings.Keyboard)
 		{
-			Say(string.Format(L("port_controls_press_key"), action));
+			text = string.Format(L(code < 0 ? "port_controls_press_key" : "port_controls_press_new_key"), name, code < 0 ? "" : PortBindings.CodeName(m_Device, code));
 		}
 		else
 		{
@@ -213,34 +223,38 @@ public class PortControlsMenu : MonoBehaviour
 				Say(string.Format(L("port_controls_connect_pad"), PortBindings.DeviceName(m_Device)));
 				return;
 			}
-			Say(string.Format(L("port_controls_press_button"), action));
+			text = string.Format(L(code < 0 ? "port_controls_press_button" : "port_controls_press_new_button"), name, code < 0 ? "" : PortBindings.CodeName(m_Device, code));
 		}
+		Say(text);
 		m_Capturing = true;
-		// The Enter or button press that chose "Add" must not be captured
+		m_CaptureAction = action;
+		m_CaptureCode = code;
+		m_CaptureEntry = entry;
+		// The Enter or button press that chose the entry must not be captured
 		m_CaptureArmFrame = Time.frameCount + 2;
 		m_CaptureDeadline = Time.unscaledTime + c_CaptureTimeout;
 		UAP_AccessibilityManager.BlockInput(true, false);
 	}
 
-	private void StopCapture(bool announce)
+	private void StopCapture()
 	{
 		m_Capturing = false;
 		PortInput.Capturing = false;
 		UAP_AccessibilityManager.BlockInput(false, false);
-		if (announce)
-		{
-			Say(L("port_controls_cancelled"));
-			ShowAction(m_Action, 0);
-		}
 	}
 
 	private void Update()
 	{
-		if (!m_Capturing)
+		if (m_OldPage != null)
 		{
-			return;
+			GameObject focus = UAP_AccessibilityManager.GetCurrentFocusObject();
+			if ((focus != null && m_PageRoot != null && focus.transform.IsChildOf(m_PageRoot.transform)) || Time.unscaledTime > m_OldPageDeadline)
+			{
+				Destroy(m_OldPage);
+				m_OldPage = null;
+			}
 		}
-		if (Time.frameCount < m_CaptureArmFrame)
+		if (!m_Capturing || Time.frameCount < m_CaptureArmFrame)
 		{
 			return;
 		}
@@ -251,62 +265,133 @@ public class PortControlsMenu : MonoBehaviour
 		}
 		if (Time.unscaledTime > m_CaptureDeadline || PortInput.CapturedKey == (int)KeyCode.Escape)
 		{
-			StopCapture(true);
+			Back();
 			return;
 		}
-		int code = (m_Device == PortBindings.Keyboard) ? PortInput.CapturedKey : PortInput.CapturedPad;
+		int code = (m_Device == PortBindings.Keyboard || PortInput.CapturedKey == c_RemoveKey) ? PortInput.CapturedKey : PortInput.CapturedPad;
 		if (code < 0)
 		{
 			return;
 		}
-		StopCapture(false);
-		int from = PortBindings.Add(m_Device, m_Action, code);
+		StopCapture();
+		Say(Apply(code));
+		ShowDevice(m_Device, m_CaptureEntry, false);
+	}
+
+	// Applies the captured key to the entry being changed; returns what to say
+	private string Apply(int code)
+	{
+		string action = PortBindings.ActionName(m_CaptureAction);
+		// Delete is reserved for removing keys
+		if (code == c_RemoveKey)
+		{
+			if (m_CaptureCode < 0)
+			{
+				return L("port_controls_unchanged");
+			}
+			PortBindings.Remove(m_Device, m_CaptureAction, m_CaptureCode);
+			return string.Format(L("port_controls_removed"), PortBindings.CodeName(m_Device, m_CaptureCode), action);
+		}
+		if (code == m_CaptureCode)
+		{
+			return L("port_controls_unchanged");
+		}
 		string name = PortBindings.CodeName(m_Device, code);
-		string text = string.Format(L("port_controls_assigned"), name, PortBindings.ActionName(m_Action));
+		int from = PortBindings.Add(m_Device, m_CaptureAction, code);
+		if (m_CaptureCode >= 0)
+		{
+			PortBindings.Remove(m_Device, m_CaptureAction, m_CaptureCode);
+		}
+		string text = string.Format(L("port_controls_assigned"), name, action);
 		if (from >= 0)
 		{
 			text += " " + string.Format(L("port_controls_removed"), name, PortBindings.ActionName((PortAction)from));
 		}
-		Say(text);
-		ShowAction(m_Action, 0);
+		return text;
 	}
 
 	// UI helpers ---------------------------------------------------------------------------------------
 
-	private int m_Order;
+	private float m_OldPageDeadline;
 
-	private void Clear(string title)
+	private void NewPage(string title, bool sayTitle, int focus)
 	{
-		StopAllCoroutines();
-		foreach (Transform child in m_Content)
+		if (m_OldPage != null)
 		{
-			Destroy(child.gameObject);
+			Destroy(m_OldPage);
 		}
+		m_OldPage = m_PageRoot;
+		if (m_OldPage != null)
+		{
+			// Hidden at once, destroyed in Update once the new page has the focus
+			CanvasGroup hide = m_OldPage.AddComponent<CanvasGroup>();
+			hide.alpha = 0f;
+			hide.blocksRaycasts = false;
+			m_OldPageDeadline = Time.unscaledTime + 2f;
+		}
+		m_FocusIndex = focus;
+		m_FocusTarget = null;
 		m_Order = 0;
-		GameObject label = CreateRect("Title", m_Content, Vector2.zero, Vector2.one);
-		label.AddComponent<LayoutElement>().preferredHeight = 56f;
-		Text text = label.AddComponent<Text>();
-		SetupText(text, title, 30);
-		AccessibleLabel accessible = label.AddComponent<AccessibleLabel>();
-		accessible.m_NameLabel = label;
-		accessible.m_ManualPositionOrder = m_Order++;
+
+		GameObject page = CreateRect("Page", transform, new Vector2(0.1f, 0.05f), new Vector2(0.9f, 0.95f));
+		page.SetActive(false);
+		page.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.95f);
+		AccessibleUIGroupRoot group = page.AddComponent<AccessibleUIGroupRoot>();
+		group.m_PopUp = true;
+		// The page name is read when the page opens (not when it is rebuilt after a change)
+		group.m_ContainerName = sayTitle ? title : "";
+		m_PageRoot = page;
+
+		GameObject label = CreateRect("Title", page.transform, new Vector2(0.05f, 0.9f), new Vector2(0.95f, 0.99f));
+		SetupText(label.AddComponent<Text>(), title, 30);
+
+		GameObject scroll = CreateRect("Content", page.transform, new Vector2(0.05f, 0.02f), new Vector2(0.95f, 0.89f));
+		VerticalLayoutGroup layout = scroll.AddComponent<VerticalLayoutGroup>();
+		layout.spacing = 2f;
+		layout.childControlHeight = true;
+		layout.childControlWidth = true;
+		layout.childForceExpandHeight = true;
+		layout.childForceExpandWidth = true;
+		m_Content = scroll.transform;
 	}
 
-	private GameObject AddButton(string caption, UnityEngine.Events.UnityAction onClick)
+	private void FinishPage()
+	{
+		// The focused entry starts the page: the plugin reads it when the page opens
+		if (m_FocusTarget == null && m_Content.childCount > 0)
+		{
+			m_FocusTarget = m_Content.GetChild(m_Content.childCount - 1).gameObject;
+		}
+		if (m_FocusTarget != null)
+		{
+			m_FocusTarget.GetComponent<AccessibleButton>().m_ForceStartHere = true;
+		}
+		m_PageRoot.SetActive(true);
+	}
+
+	private void AddButton(string caption, UnityEngine.Events.UnityAction onClick)
 	{
 		GameObject go = CreateRect("Button", m_Content, Vector2.zero, Vector2.one);
-		go.AddComponent<LayoutElement>().preferredHeight = 44f;
+		go.AddComponent<LayoutElement>().preferredHeight = 30f;
 		Image image = go.AddComponent<Image>();
 		image.color = new Color(0.45f, 0f, 0f, 1f);
 		Button button = go.AddComponent<Button>();
 		button.targetGraphic = image;
 		button.onClick.AddListener(onClick);
 		GameObject label = CreateRect("Text", go.transform, Vector2.zero, Vector2.one);
-		SetupText(label.AddComponent<Text>(), caption, 24);
+		Text text = label.AddComponent<Text>();
+		SetupText(text, caption, 20);
+		text.resizeTextMaxSize = 20;
+		text.resizeTextMinSize = 8;
+		text.resizeTextForBestFit = true;
 		AccessibleButton accessible = go.AddComponent<AccessibleButton>();
 		accessible.m_NameLabel = label;
-		accessible.m_ManualPositionOrder = m_Order++;
-		return go;
+		accessible.m_ManualPositionOrder = m_Order;
+		if (m_Order == m_FocusIndex)
+		{
+			m_FocusTarget = go;
+		}
+		m_Order++;
 	}
 
 	private void SetupText(Text text, string value, int size)
@@ -318,20 +403,6 @@ public class PortControlsMenu : MonoBehaviour
 		text.horizontalOverflow = HorizontalWrapMode.Wrap;
 		text.verticalOverflow = VerticalWrapMode.Truncate;
 		text.text = value;
-	}
-
-	private void Focus(GameObject element)
-	{
-		StartCoroutine(FocusLater(element));
-	}
-
-	private IEnumerator FocusLater(GameObject element)
-	{
-		yield return new WaitForSecondsRealtime(c_RegisterDelay);
-		if (element != null)
-		{
-			UAP_AccessibilityManager.SelectElement(element, true);
-		}
 	}
 
 	private static GameObject CreateRect(string name, Transform parent, Vector2 min, Vector2 max)
