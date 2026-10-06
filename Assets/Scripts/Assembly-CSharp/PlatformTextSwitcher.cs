@@ -18,6 +18,8 @@ public class PlatformTextSwitcher : MonoBehaviour
 			return;
 
 #if !UNITY_EDITOR
+		// PORT: was: always the Windows text. macOS takes the same text as Windows, which is what a Mac
+		// player wants - the strings name keys and buttons, and the Mac uses the same ones.
 		m_Label.text = m_WindowsText;
 		return;
 #else

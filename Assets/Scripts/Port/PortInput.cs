@@ -17,7 +17,9 @@ using UnityEngine;
 //   In the pause menu and the tutorial skip confirmation: the pause buttons resume, like Esc.
 // "During the run" = PlayGame state with the accessibility plugin paused (no menu shown).
 // PlayStation gamepads are read directly through HID when possible (PortSonyInput): this also
-// works over Bluetooth, where Windows does not deliver the buttons to Unity.
+// works over Bluetooth, where Windows does not deliver the buttons to Unity. On the Mac the same
+// questions are asked of the Input System through Apple's GameController framework (PortGamePad);
+// PortPad is whichever of the two this build has, and nothing below knows the difference.
 // Gamepad rumble: see PortRumble.
 //
 // Mouse: drag with the left button = swipe; click without dragging = tap.
@@ -173,7 +175,7 @@ public class PortInput : MonoBehaviour
 
 	private void OnApplicationQuit()
 	{
-		PortSonyInput.Shutdown();
+		PortPad.Shutdown();
 	}
 
 	private void Update()
@@ -260,7 +262,7 @@ public class PortInput : MonoBehaviour
 		get
 		{
 			DetectControllerType();
-			return s_Connected || PortSonyInput.Active;
+			return s_Connected || PortPad.Active;
 		}
 	}
 
@@ -270,7 +272,7 @@ public class PortInput : MonoBehaviour
 		get
 		{
 			DetectControllerType();
-			return s_Sony || PortSonyInput.Active;
+			return s_Sony || PortPad.Sony;
 		}
 	}
 
@@ -315,8 +317,9 @@ public class PortInput : MonoBehaviour
 		return !UAP_AccessibilityManager.IsEnabled() || !UAP_AccessibilityManager.IsActive();
 	}
 
-	// true = PlayStation gamepad read directly through HID (PortSonyInput); Unity input is ignored for it.
-	private static bool s_UseHid;
+	// true = the gamepad is read directly rather than through Unity's legacy joystick input (PortPad:
+	// the Windows HID reader, or the Input System on the Mac). Unity input is ignored for it.
+	private static bool s_UseDirect;
 
 	private static bool PadDown(int code)
 	{
@@ -336,7 +339,7 @@ public class PortInput : MonoBehaviour
 		{
 			return false;
 		}
-		return s_UseHid ? PortSonyInput.WasPressed(code) : Input.GetKeyDown(KeyCode.JoystickButton0 + code);
+		return s_UseDirect ? PortPad.WasPressed(code) : Input.GetKeyDown(KeyCode.JoystickButton0 + code);
 	}
 
 	private static bool PadDown(IList<int> codes)
@@ -457,26 +460,26 @@ public class PortInput : MonoBehaviour
 		}
 	}
 
-	// Gamepad state for this frame: layout, HID, stick/d-pad directions (s_Up...) and trigger presses
+	// Gamepad state for this frame: layout, reader, stick/d-pad directions (s_Up...) and trigger presses
 	private void ReadPad()
 	{
 		DetectControllerType();
-		PortSonyInput.Poll();
-		s_UseHid = PortSonyInput.Active;
-		if (s_UseHid)
+		PortPad.Poll();
+		s_UseDirect = PortPad.Active;
+		if (s_UseDirect)
 		{
-			s_Sony = true;
+			s_Sony = PortPad.Sony;
 		}
 		// Each source separately: d-pad, left stick, right stick (all with Y positive upwards;
 		// Unity's stick Y is positive downwards, PortJoyY is already inverted)
 		Vector2 dpad;
 		Vector2 left;
 		Vector2 right;
-		if (s_UseHid)
+		if (s_UseDirect)
 		{
-			dpad = PortSonyInput.Dpad;
-			left = PortSonyInput.LeftStick;
-			right = PortSonyInput.RightStick;
+			dpad = PortPad.Dpad;
+			left = PortPad.LeftStick;
+			right = PortPad.RightStick;
 		}
 		else
 		{
@@ -498,7 +501,14 @@ public class PortInput : MonoBehaviour
 		// Xbox triggers are axes: generate a press when they pass the halfway point
 		s_LeftTrigger = false;
 		s_RightTrigger = false;
-		if (!s_Sony)
+		if (s_UseDirect)
+		{
+			// The direct reader already knows the layout, so it answers both kinds of trigger: an axis on
+			// an Xbox pad, a button on a DualSense.
+			s_LeftTrigger = PortPad.LeftTriggerPressed;
+			s_RightTrigger = PortPad.RightTriggerPressed;
+		}
+		else if (!s_Sony)
 		{
 			bool lt = ReadAxis("PortAxis8") > 0.5f;
 			bool rt = ReadAxis("PortAxis9") > 0.5f;

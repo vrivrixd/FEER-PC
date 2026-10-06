@@ -1,14 +1,24 @@
 using System;
+using UnityEngine;
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
-using UnityEngine;
+#endif
+#if ENABLE_INPUT_SYSTEM && !UNITY_STANDALONE_WIN && !UNITY_EDITOR_WIN
+using UnityEngine.InputSystem;
+#endif
 
 // PORT: gamepad rumble on PC (the original used Handheld.Vibrate on the phone).
 //
+// Windows:
 // - XInput gamepads (Xbox, or PlayStation through DS4Windows/Steam): XInputSetState.
 // - DualShock 4 and DualSense connected directly (USB or Bluetooth): HID output report.
+//
+// macOS:
+// - Every pad the GameController framework knows, which is every pad the Input System package sees:
+//   Gamepad.SetMotorSpeeds. Nothing to enumerate by hand and no vendor table to keep up to date.
 //
 // Everything is best effort: if the gamepad is missing or in exclusive use, nothing happens.
 public class PortRumble : MonoBehaviour
@@ -17,11 +27,13 @@ public class PortRumble : MonoBehaviour
 
 	private float m_StopTime = -1f;
 
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 	private readonly List<SonyPad> m_SonyPads = new List<SonyPad>();
 
 	private float m_NextSonyScan;
 
 	private byte m_BtSequence;
+#endif
 
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 	private static void Create()
@@ -70,15 +82,18 @@ public class PortRumble : MonoBehaviour
 	private void OnApplicationQuit()
 	{
 		SetMotors(0f, 0f);
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 		foreach (SonyPad pad in m_SonyPads)
 		{
 			pad.Dispose();
 		}
 		m_SonyPads.Clear();
+#endif
 	}
 
 	private void SetMotors(float strong, float weak)
 	{
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 		try
 		{
 			SetXInput(strong, weak);
@@ -95,8 +110,43 @@ public class PortRumble : MonoBehaviour
 		{
 			Debug.Log("[PortRumble] HID: " + e.Message);
 		}
+#else
+		SetGameController(strong, weak);
+#endif
 	}
 
+#if !UNITY_STANDALONE_WIN && !UNITY_EDITOR_WIN
+	// PORT: macOS rumble, through the Input System's Gamepad, which is a thin layer over Apple's
+	// GameController framework. That framework already knows every pad macOS supports, so there is no
+	// vendor and product table here the way the Windows HID path needs one.
+	//
+	// SetMotorSpeeds takes the low-frequency (large) motor first; the game asks for strong and weak, so
+	// they are passed straight through. Every connected pad is rung, not only the "current" one, because
+	// the Input System only sets m_Current when something has been read this frame and the game may rumble
+	// from a death that happens without a button being pressed.
+	private static void SetGameController(float strong, float weak)
+	{
+#if ENABLE_INPUT_SYSTEM
+		try
+		{
+			if (Gamepad.all.Count == 0)
+			{
+				return;
+			}
+			foreach (Gamepad pad in Gamepad.all)
+			{
+				pad.SetMotorSpeeds(strong, weak);
+			}
+		}
+		catch (Exception e)
+		{
+			Debug.Log("[PortRumble] GameController: " + e.Message);
+		}
+#endif
+	}
+#endif
+
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 	// ------------------------------------------------------------------ XInput
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -566,4 +616,5 @@ public class PortRumble : MonoBehaviour
 
 	[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
 	internal static extern SafeFileHandle CreateFile(string name, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);
+#endif
 }

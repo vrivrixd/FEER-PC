@@ -798,6 +798,13 @@ public class UAP_AccessibilityManager : MonoBehaviour
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 			if (WindowsTTS.IsScreenReaderDetected())
 				shouldTurnOn = true;
+#elif (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
+			// PORT: the Mac speaks through VoiceOver; turn the plugin on by itself when it is running,
+			// as it does for NVDA on Windows. This has to answer now, not from a cached background probe:
+			// with the plugin off there is no keyboard or gamepad navigation and no speech at all, and the
+			// game stops at the first screen it needs them on.
+			if (PortVoiceOver.DetectNow())
+				shouldTurnOn = true;
 #elif UNITY_ANDROID
 			if (talkBackEnabled)
 				shouldTurnOn = true;
@@ -2083,7 +2090,9 @@ public class UAP_AccessibilityManager : MonoBehaviour
 	/// <returns></returns>
 	public static bool IsCurrentPlatformSupported()
 	{
-		if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer || Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor)
+		// PORT: macOS added. Without this the plugin reports the platform unsupported and the whole
+		// accessible UI (menus, focus, reading) stays off on the Mac.
+		if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer || Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXEditor)
 			return true;
 
 		return false;

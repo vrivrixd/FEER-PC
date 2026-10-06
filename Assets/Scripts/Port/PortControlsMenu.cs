@@ -88,7 +88,9 @@ public class PortControlsMenu : MonoBehaviour
 		root.AddComponent<GraphicRaycaster>();
 		PortControlsMenu menu = root.AddComponent<PortControlsMenu>();
 		s_Instance = menu;
-		menu.m_Font = (font != null) ? font : Resources.GetBuiltinResource<Font>("Arial.ttf");
+		// PORT: the caller's font if it has one, else the platform builtin. "Arial.ttf" is the Windows name and
+	// does not exist on the Mac; PortPlatform asks for the one that is on both.
+		menu.m_Font = (font != null) ? font : PortPlatform.DefaultFont();
 		menu.m_ReturnFocus = returnFocus;
 
 		GameObject panel = CreateRect("Panel", root.transform, new Vector2(0.1f, 0.03f), new Vector2(0.9f, 0.97f));

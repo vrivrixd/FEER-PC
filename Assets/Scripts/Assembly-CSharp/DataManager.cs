@@ -982,14 +982,22 @@ public class DataManager : MonoBehaviour
 		StartCoroutine(FetchImageData(filePath, callbackFunction));
 	}
 
-	// PORT: on Windows streamingAssetsPath is a plain local path; UnityWebRequest needs "file://".
+	// PORT: on a standalone player streamingAssetsPath is a plain local path; UnityWebRequest needs "file://".
+	// The path is turned into a URI properly rather than by pasting "file:///" in front of it, because that
+	// leaves four slashes in front of a macOS path, which UnityWebRequest refuses.
 	private static string ToRequestUrl(string filePath)
 	{
 		if (filePath.Contains("://"))
 		{
 			return filePath;
 		}
-		return "file:///" + filePath.Replace('\\', '/');
+		string path = filePath.Replace('\\', '/');
+		if (!path.StartsWith("/"))
+		{
+			// A Windows drive letter ("C:/...") has to become "/C:/...", which is what file:///C:/... is.
+			path = "/" + path;
+		}
+		return "file://" + path;
 	}
 
 	private IEnumerator FetchImageData(string filePath, Action<bool, byte[]> callbackFunction)

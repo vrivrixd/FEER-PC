@@ -67,8 +67,19 @@ public class GameStateStartTutorial : GameState
 	private IEnumerator SpeakText()
 	{
 		yield return new WaitForSeconds(0.5f);
-		speechAudio.gameObject.SetActive(true);
 		AudioClip clip = DataManager.Instance.GetTutorialHeadphoneClip();
+		// PORT: the original dereferences the clip on the next line with no check. If it is not there yet -
+		// it is fetched asynchronously - that throws inside this coroutine, the coroutine dies silently, and
+		// the button below is never shown. The screen then has no way out of it at all: with the
+		// accessibility plugin on, the button is the only way forward, and it is what this coroutine shows.
+		// So a missing clip shows the button instead of stranding the player.
+		if (clip == null)
+		{
+			Debug.LogWarning("[Port] No tutorial headphone clip; showing the start button anyway.");
+			startTutorialBtn.SetActive(true);
+			yield break;
+		}
+		speechAudio.gameObject.SetActive(true);
 		speechAudio.clip = clip;
 		speechAudio.Play();
 		yield return new WaitForSeconds(clip.length);
