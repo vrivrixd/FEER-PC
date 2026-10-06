@@ -2,8 +2,8 @@ using System.Text;
 using UnityEngine;
 
 // PORT: run status spoken on request (keys and buttons in PortBindings: score, lights, missions).
-// During the run the accessibility plugin is paused, so the text goes straight to the
-// screen reader (Tolk) or SAPI through WindowsTTS, interrupting what it was saying.
+// During the run the accessibility plugin is paused, so the text goes straight to the screen reader -
+// Tolk or SAPI on Windows, VoiceOver on the Mac - interrupting what it was saying.
 public static class PortStatus
 {
 	public static void SayScore()
@@ -54,10 +54,29 @@ public static class PortStatus
 		Say(sb.ToString().Trim());
 	}
 
+	// The run status is spoken outside the accessibility plugin's queue, so it goes straight to the
+	// platform's screen reader and interrupts whatever was being said.
 	private static void Say(string text)
 	{
 		Debug.Log("[PortStatus] " + text);
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+		// Tolk (NVDA, JAWS, ...), or the plugin's SAPI voice when no screen reader is running.
 		WindowsTTS.Stop();
 		WindowsTTS.Speak(text);
+#else
+		// PORT: the Mac has no Tolk; the same text goes to VoiceOver, or to the system voice when
+		// VoiceOver is not running. MacOSTTS is the plugin's own Mac component, so when it exists the
+		// queue stays in step with the rest of the game.
+		if (MacOSTTS.instance != null)
+		{
+			MacOSTTS.instance.Stop();
+			MacOSTTS.instance.Speak(text);
+		}
+		else
+		{
+			PortVoiceOver.Stop();
+			PortVoiceOver.Speak(text);
+		}
+#endif
 	}
 }

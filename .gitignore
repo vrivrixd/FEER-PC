@@ -5,3 +5,5 @@ obj/
 UserSettings/
 *.csproj
 *.sln
+# Finder, which will otherwise offer these on every commit from a Mac
+.DS_Store

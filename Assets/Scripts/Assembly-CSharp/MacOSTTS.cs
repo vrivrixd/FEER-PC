@@ -1,20 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-
-#if (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
-using System.Diagnostics;
-#endif
-
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MacOSTTS : MonoBehaviour
 {
 	public static MacOSTTS instance = null;
 	bool m_IsSpeaking = false;
-
-#if (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
-	Process m_VoiceProcess = null;
-#endif
 
 	//////////////////////////////////////////////////////////////////////////
 
@@ -45,76 +34,23 @@ public class MacOSTTS : MonoBehaviour
 		Stop();
 
 #if (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
-		m_IsSpeaking = true;
-		StartCoroutine("SpeakText", msg);
+		// PORT: the plugin spoke through the "say" command, which is a speaker, not a screen reader: a
+		// VoiceOver user heard the game in the room instead of in their reader. The Mac port speaks through
+		// VoiceOver first and falls back to "say" only when VoiceOver is not running or has refused the
+		// Apple Event, so nothing that used to be heard is lost. See PortVoiceOver.
+		m_IsSpeaking = PortVoiceOver.Speak(msg);
 #endif
 	}
-
-	IEnumerator SpeakText(string textToSpeak)
-	{
-#if (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
-		// Replace quotation marks
-		textToSpeak = textToSpeak.Replace('"', '\'');
-		int speechRate = (int)((UAP_AccessibilityManager.GetSpeechRate() / 100.0f) * 175 * 2);
-		string parameters = "-r " + speechRate + " " + '"' + textToSpeak + '"';
-
-		m_VoiceProcess = new System.Diagnostics.Process();
-		m_VoiceProcess.StartInfo.FileName = "say";
-		m_VoiceProcess.StartInfo.Arguments = parameters;
-		m_VoiceProcess.StartInfo.CreateNoWindow = true;
-		m_VoiceProcess.StartInfo.RedirectStandardOutput = true;
-		m_VoiceProcess.StartInfo.RedirectStandardError = true;
-		m_VoiceProcess.StartInfo.UseShellExecute = false;
-		m_VoiceProcess.StartInfo.StandardOutputEncoding = System.Text.Encoding.UTF8;
-
-		System.Threading.Thread worker = new System.Threading.Thread(() => WaitForVoiceToFinish(m_VoiceProcess)) { Name = "UAP_TTS_Proc" };
-		worker.Start();
-
-		do
-		{
-			yield return null;
-		} while (worker.IsAlive);
-
-		worker = null;
-		m_IsSpeaking = false;
-		m_VoiceProcess = null;
-#endif
-
-		yield break;
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-
-#if (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
-	private void WaitForVoiceToFinish(System.Diagnostics.Process process)
-	{
-		try
-		{
-			process.Start();
-			process.WaitForExit(); 
-		}
-		catch (System.Exception ex)
-		{
-			UnityEngine.Debug.LogError("[Accessibility] TTS Error: " + ex);
-		}
-	}
-#endif
 
 	//////////////////////////////////////////////////////////////////////////
 
 	public void Stop()
 	{
 #if (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
-		if (!m_IsSpeaking || m_VoiceProcess == null)
-			return;
-
-		if (!m_VoiceProcess.HasExited)
-		{
-			m_VoiceProcess.Kill();
-			m_VoiceProcess = null;
-		}
+		// PORT: was: kill the "say" process. Now: stop VoiceOver's queue as well, and kill say if that is
+		// what is talking.
+		PortVoiceOver.Stop();
 		m_IsSpeaking = false;
-		StopCoroutine("SpeakText");
 #endif
 	}
 
@@ -125,7 +61,13 @@ public class MacOSTTS : MonoBehaviour
 		if (!Application.isPlaying)
 			return false;
 
+#if (UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX)
+		// PORT: VoiceOver does not report when it finishes, so this is the estimate PortVoiceOver keeps,
+		// which is what the plugin's own flag was for.
+		return m_IsSpeaking && PortVoiceOver.IsSpeaking();
+#else
 		return m_IsSpeaking;
+#endif
 	}
 
 	//////////////////////////////////////////////////////////////////////////

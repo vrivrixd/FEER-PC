@@ -1,8 +1,10 @@
 using System;
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
+#endif
 using UnityEngine;
 
 // PORT: reads DualShock 4 / DualSense directly through HID (USB and Bluetooth).
@@ -11,8 +13,14 @@ using UnityEngine;
 // as soon as some program requests it (Steam, the rumble itself...). Windows does not deliver that report
 // as a joystick, so Unity stops seeing the buttons. Reading the HID here makes both modes work the same.
 //
+// This is the Windows half only. There is nothing to read on the Mac: Apple's GameController framework
+// already hands the extended report to the Input System, which is what PortGamePad reads instead. The whole
+// class is compiled out of a Mac build rather than compiled empty, because a single stray DllImport is one
+// unresolved symbol away from a failed build; PortPad picks the other reader there.
+//
 // Buttons use the same numbering as Unity/DirectInput: 0 Square, 1 Cross, 2 Circle, 3 Triangle,
 // 4 L1, 5 R1, 6 L2, 7 R2, 8 Share/Create, 9 Options, 10 L3, 11 R3, 12 PS, 13 Touchpad.
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
 public static class PortSonyInput
 {
 	private class Reader
@@ -210,3 +218,4 @@ public static class PortSonyInput
 	[DllImport("kernel32.dll", SetLastError = true)]
 	private static extern bool CloseHandle(IntPtr handle);
 }
+#endif
